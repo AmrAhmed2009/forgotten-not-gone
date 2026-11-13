@@ -4,7 +4,7 @@ import './globals.css'
 
 export const metadata: Metadata = {
   title: 'Forgotten, Not Gone — A Space Explorer Adventure',
-  description: 'An interactive moon adventure for curious explorers. Discover the stories and science behind the Apollo 11 landing site.',
+  description: 'An interactive Mars adventure for curious explorers. Discover NASA’s Ingenuity helicopter, its engineering, and its legacy.',
   generator: 'v0.app',
   icons: {
     icon: [
