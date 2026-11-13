@@ -1,362 +1,104 @@
 "use client"
 
-import { ArrowLeft, ArrowRight, Atom, Award, Check, ChevronRight, CircleHelp, Cpu, ExternalLink, Globe2, Heart, Lightbulb, LockKeyhole, Rocket, RotateCcw, ScanLine, Sparkles, Star, Telescope, Wind } from "lucide-react"
-import type { LucideIcon } from "lucide-react"
+import { ArrowLeft, ArrowRight, Atom, Check, CircleHelp, Cpu, ExternalLink, Gauge, ImageIcon, Lightbulb, MapPin, Printer, Radio, Rocket, RotateCcw, Sparkles, Star, Telescope, Wind } from "lucide-react"
 import type { FormEvent } from "react"
 import { Button } from "@/components/ui/button"
-import { IngenuityScene } from "@/components/ingenuity-scene"
-import {
-  ENGINEERING_CHOICES,
-  EXPLORER_INTERESTS,
-  FUTURE_PREDICTIONS,
-  INGENUITY_PARTS,
-  type EngineeringChoiceId,
-  type ExplorerInterest,
-  type FuturePredictionId,
-  type MachinePartId,
-} from "@/components/adventure-content"
+import { MissionArchive } from "@/components/mission-archive"
+import { INTEREST_PROFILES, MISSION_DATA, type AgeBand, type ExplorerInterest, type MissionId, type MissionRecord } from "@/components/adventure-content"
 
-const interestIcons: Record<ExplorerInterest, LucideIcon> = {
-  Engineering: Cpu,
-  "Space Mysteries": Telescope,
-  Science: Atom,
-}
+const interestIcons = { Engineering: Cpu, "Space Mysteries": Telescope, Science: Atom }
 
-export function WelcomeScreen({
-  nickname,
-  age,
-  interest,
-  onNicknameChange,
-  onAgeChange,
-  onInterestChange,
-  onLaunch,
-}: {
-  nickname: string
-  age: string
-  interest: ExplorerInterest | null
-  onNicknameChange: (value: string) => void
-  onAgeChange: (value: string) => void
-  onInterestChange: (value: ExplorerInterest) => void
-  onLaunch: () => void
-}) {
-  function submit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    if (interest) onLaunch()
-  }
+type ProfileProps = { nickname: string; age: string; interest: ExplorerInterest | null; onNicknameChange: (value: string) => void; onAgeChange: (value: string) => void; onInterestChange: (value: ExplorerInterest) => void; onLaunch: () => void }
 
+export function WelcomeScreen({ nickname, age, interest, onNicknameChange, onAgeChange, onInterestChange, onLaunch }: ProfileProps) {
+  function submit(event: FormEvent<HTMLFormElement>) { event.preventDefault(); if (interest) onLaunch() }
   return (
-    <section className="welcome-stage" aria-labelledby="stage-title">
+    <section className="welcome-stage cinematic-stage" aria-labelledby="stage-title">
       <div className="welcome-copy">
-        <div className="eyebrow"><span className="eyebrow-line" /> SPACE EXPLORER ADVENTURE <span className="eyebrow-dot">·</span> MISSION 01</div>
+        <div className="eyebrow"><span className="eyebrow-line" /> NASA SPACE APPS ADVENTURE <span className="eyebrow-dot">·</span> FIELD LOG 001</div>
         <h1 id="stage-title" data-stage-title tabIndex={-1}>Forgotten,<br /><span>Not Gone</span></h1>
-        <p className="welcome-subtitle">Every forgotten space machine has a story. Are you ready to discover it?</p>
-        <div className="welcome-note"><Sparkles aria-hidden="true" /><span>One brave little helicopter.<br />One giant leap for exploration.</span></div>
-        <IngenuityScene discovered={[]} selected={null} onSelect={() => {}} interactive={false} />
+        <p className="welcome-subtitle">The machines are quiet. Their discoveries are not. Step into the story of NASA equipment still waiting on other worlds.</p>
+        <div className="welcome-note"><Sparkles aria-hidden="true" /><span>Four machines. Seven clues each.<br />You are the explorer.</span></div>
+        <div className="welcome-orbit-art" aria-label="Illustration of a rover beacon orbiting a planet" role="img"><span className="orbit-glow" /><span className="orbit-planet" /><span className="orbit-signal" /><span className="orbit-vehicle" /><small>ARCHIVE SIGNAL · ACTIVE</small></div>
       </div>
-
       <form className="launch-card" onSubmit={submit}>
         <div className="card-overline"><span className="live-indicator" /> YOUR EXPLORER PROFILE <span className="optional-label">JUST FOR THIS VISIT</span></div>
-        <h2>Get ready to launch</h2>
-        <p className="launch-intro">A couple of quick picks will shape your adventure.</p>
-
+        <h2>Make the archive yours</h2>
+        <p className="launch-intro">Choose what to call yourself and how you want to investigate. Nothing is saved or sent.</p>
         <div className="profile-fields">
-          <label className="profile-field" htmlFor="explorer-nickname">
-            <span className="field-heading">Explorer nickname <span>OPTIONAL</span></span>
-            <input
-              id="explorer-nickname"
-              name="nickname"
-              type="text"
-              value={nickname}
-              maxLength={24}
-              autoComplete="off"
-              placeholder="For example, Nova"
-              onChange={(event) => onNicknameChange(event.target.value)}
-            />
-            <span className="field-hint">A nickname only — no real name needed.</span>
-          </label>
-          <label className="profile-field" htmlFor="explorer-age">
-            <span className="field-heading">Age <span>OPTIONAL</span></span>
-            <select id="explorer-age" name="age" value={age} onChange={(event) => onAgeChange(event.target.value)}>
-              <option value="">Skip this</option>
-              {[10, 11, 12, 13, 14].map((value) => <option key={value} value={String(value)}>{value}</option>)}
-            </select>
-          </label>
+          <label className="profile-field" htmlFor="explorer-nickname"><span className="field-heading">Explorer nickname <span>OPTIONAL</span></span><input id="explorer-nickname" type="text" value={nickname} maxLength={24} autoComplete="off" placeholder="For example, Nova" onChange={(event) => onNicknameChange(event.target.value)} /><span className="field-hint">A nickname only — no real name needed.</span></label>
+          <label className="profile-field" htmlFor="explorer-age"><span className="field-heading">Age <span>OPTIONAL</span></span><select id="explorer-age" value={age} onChange={(event) => onAgeChange(event.target.value)}><option value="">Skip this</option>{[10, 11, 12, 13, 14].map((value) => <option key={value} value={String(value)}>{value}</option>)}</select><span className="field-hint">Changes the clue level.</span></label>
         </div>
-
-        <fieldset className="interest-fieldset">
-          <legend>What are you most curious about?</legend>
-          <div className="interest-options">
-            {EXPLORER_INTERESTS.map((option) => {
-              const Icon = interestIcons[option]
-              return (
-                <label className={`interest-option${interest === option ? " is-selected" : ""}`} key={option}>
-                  <input type="radio" name="interest" value={option} checked={interest === option} required onChange={() => onInterestChange(option)} />
-                  <span className="interest-option-card"><Icon aria-hidden="true" /><span>{option}</span><span className="interest-check"><Check aria-hidden="true" /></span></span>
-                </label>
-              )
-            })}
-          </div>
-        </fieldset>
-
-        <Button className="action-button launch-button" type="submit" disabled={!interest}>
-          LAUNCH MY ADVENTURE <ArrowRight data-icon="inline-end" aria-hidden="true" />
-        </Button>
-        <p className="privacy-note"><LockKeyhole aria-hidden="true" /> Your choices stay in this browser tab. They are never saved or sent to a server.</p>
+        <fieldset className="interest-fieldset"><legend>What are you most curious about?</legend><div className="interest-options">{(Object.keys(interestIcons) as ExplorerInterest[]).map((option) => { const Icon = interestIcons[option]; return <label className={`interest-option${interest === option ? " is-selected" : ""}`} key={option}><input type="radio" name="interest" value={option} checked={interest === option} required onChange={() => onInterestChange(option)} /><span className="interest-option-card"><Icon aria-hidden="true" /><span>{option}</span><span className="interest-check"><Check aria-hidden="true" /></span></span></label> })}</div></fieldset>
+        <Button className="action-button launch-button" type="submit" disabled={!interest}>ENTER THE ARCHIVE <ArrowRight data-icon="inline-end" aria-hidden="true" /></Button>
+        <p className="privacy-note"><Radio aria-hidden="true" /> Your choices stay in this browser tab. They are never saved or sent to a server.</p>
       </form>
     </section>
   )
 }
 
-export function MissionSelectionScreen({
-  nickname,
-  interest,
-  onInvestigate,
-  onBack,
-}: {
-  nickname: string
-  interest: ExplorerInterest
-  onInvestigate: () => void
-  onBack: () => void
-}) {
+export function MissionSelectionScreen({ nickname, ageBand, interest, completedMissions, selectedMission, onSelect, onBack }: { nickname: string; ageBand: AgeBand; interest: ExplorerInterest; completedMissions: MissionId[]; selectedMission: MissionId | null; onSelect: (mission: MissionId) => void; onBack: () => void }) {
   const explorer = nickname.trim() || "Explorer"
-
+  const profile = INTEREST_PROFILES[interest]
   return (
     <section className="missions-stage" aria-labelledby="stage-title">
-      <div className="mission-greeting">
-        <div className="eyebrow"><span className="eyebrow-line" /> TRANSMISSION RECEIVED <span className="eyebrow-dot">·</span> EARTH TO MARS</div>
-        <h1 id="stage-title" data-stage-title tabIndex={-1}>Welcome aboard, <span>{explorer === "Explorer" ? "Explorer" : `Explorer ${explorer}`}!</span></h1>
-        <p>Your next <strong>{interest}</strong> mystery is waiting on Mars.</p>
-      </div>
-      <div className="missions-heading"><div><span className="section-kicker">PICK YOUR FIRST FIELD MISSION</span><h2>Choose your mystery</h2></div><span className="mission-count"><Globe2 aria-hidden="true" /> 01 PLAYABLE MISSION</span></div>
-      <div className="mission-cards">
-        <Button className="mission-card mission-card-playable" type="button" onClick={onInvestigate}>
-          <span className="mission-card-top"><span className="mission-number">MISSION 01</span><span className="mission-status"><span /> PLAYABLE</span></span>
-          <span className="mission-art mars-art" aria-hidden="true"><span className="mars-orbit" /><span className="mars-planet" /><span className="mission-heli"><span /><span /><span /></span><span className="art-star star-one" /><span className="art-star star-two" /><span className="art-star star-three" /><span className="mars-horizon" /></span>
-          <span className="mission-card-copy"><span className="mission-title">The Helicopter<br />That Flew on Mars</span><span className="mission-summary">Meet NASA&apos;s Ingenuity helicopter and uncover how it learned to fly.</span></span>
-          <span className="mission-card-details"><span><small>ARTIFACT</small><b>Ingenuity Helicopter</b></span><span><small>LOCATION</small><b>Mars · Jezero Crater</b></span></span>
-          <span className="mission-card-action">INVESTIGATE <ArrowRight data-icon="inline-end" aria-hidden="true" /></span>
-        </Button>
-
-        <article className="mission-card mission-card-soon" aria-label="Mission 02, The Machine Left on the Moon, coming soon">
-          <div className="mission-card-top"><span className="mission-number">MISSION 02</span><span className="soon-status"><LockKeyhole aria-hidden="true" /> COMING SOON</span></div>
-          <div className="mission-art moon-art" aria-hidden="true"><span className="moon-planet" /><span className="moon-crater crater-one" /><span className="moon-crater crater-two" /><span className="moon-star star-one" /><span className="moon-star star-two" /><span className="moon-horizon" /></div>
-          <div className="mission-card-copy"><span className="mission-title">The Machine<br />Left on the Moon</span><span className="mission-summary">A historic lunar lander is waiting for its story to be told.</span></div>
-          <div className="mission-card-details"><span><small>ARTIFACT</small><b>Apollo 11 descent stage</b></span><span><small>LOCATION</small><b>The Moon · Tranquility Base</b></span></div>
-          <div className="mission-card-action disabled-action">LOCKED FOR NOW <LockKeyhole aria-hidden="true" /></div>
-        </article>
-      </div>
-      <div className="stage-navigation stage-navigation-start">
-        <Button className="quiet-button" variant="outline" type="button" onClick={onBack}><ArrowLeft data-icon="inline-start" aria-hidden="true" /> BACK TO PROFILE</Button>
-        <p className="mission-note"><Sparkles aria-hidden="true" /> More mysteries are still out there. This is your first one.</p>
-      </div>
+      <div className="mission-greeting"><div className="eyebrow"><span className="eyebrow-line" /> TRANSMISSION RECEIVED <span className="eyebrow-dot">·</span> ARCHIVE ACCESS GRANTED</div><h1 id="stage-title" data-stage-title tabIndex={-1}>Welcome aboard, <span>{explorer === "Explorer" ? "Explorer" : explorer}</span>.</h1><p>{profile.lens} {ageBand === "younger" ? "Your clue deck is set up with extra visual guidance." : ageBand === "older" ? "Your clue deck includes deeper engineering reasoning." : "Pick any machine to begin."}</p></div>
+      <div className="missions-heading"><div><span className="section-kicker">CHOOSE A MACHINE TO FOLLOW</span><h2>Four stories still transmitting</h2></div><span className="mission-count"><MapPin aria-hidden="true" /> {completedMissions.length} / 4 COMPLETE</span></div>
+      <div className="mission-cards mission-cards-four">{MISSION_DATA.map((mission) => <MissionCard key={mission.id} mission={mission} completed={completedMissions.includes(mission.id)} selected={selectedMission === mission.id} onSelect={onSelect} />)}</div>
+      <div className="stage-navigation stage-navigation-start"><Button className="quiet-button" variant="outline" type="button" onClick={onBack}><ArrowLeft data-icon="inline-start" aria-hidden="true" /> BACK TO PROFILE</Button><p className="mission-note"><Sparkles aria-hidden="true" /> {profile.arrival}</p></div>
     </section>
   )
 }
 
-export function DiscoveryScreen({
-  discovered,
-  selected,
-  onSelect,
-  onContinue,
-  onBack,
-}: {
-  discovered: MachinePartId[]
-  selected: MachinePartId | null
-  onSelect: (part: MachinePartId) => void
-  onContinue: () => void
-  onBack: () => void
-}) {
-  const activePart = INGENUITY_PARTS.find((part) => part.id === selected)
-  const allDiscovered = discovered.length === INGENUITY_PARTS.length
-
-  return (
-    <section className="discovery-stage" aria-labelledby="stage-title">
-      <div className="stage-heading-row">
-        <div>
-          <div className="eyebrow"><span className="eyebrow-line" /> STAGE 03 <span className="eyebrow-dot">·</span> JEZERO CRATER, MARS</div>
-          <h1 id="stage-title" data-stage-title tabIndex={-1}>Meet <span>Ingenuity</span></h1>
-          <p className="stage-intro">A small helicopter once made history on Mars. Now it rests silently on the planet&apos;s surface. What made this little machine so extraordinary?</p>
-        </div>
-        <div className="discovery-meter"><span>PARTS FOUND</span><b>{discovered.length}<i> / 3</i></b><span className="meter-bars" aria-label={`${discovered.length} of 3 parts discovered`}>{INGENUITY_PARTS.map((part) => <i key={part.id} className={discovered.includes(part.id) ? "is-filled" : ""} />)}</span></div>
-      </div>
-
-      <div className="discovery-layout">
-        <div className="discovery-visual-column">
-          <IngenuityScene discovered={discovered} selected={selected} onSelect={onSelect} />
-          <div className="discovery-tip"><Lightbulb aria-hidden="true" /><span>Hint: scan the blades, panel, and camera.</span></div>
-        </div>
-        <aside className="discovery-log" aria-label="Ingenuity discovery log" aria-live="polite">
-          <div className="log-heading"><span className="log-icon"><ScanLine aria-hidden="true" /></span><span>FLIGHT LOG <i>·</i> 001</span><span className="log-live"><span /> LIVE</span></div>
-          {activePart ? (
-            <div className="part-discovery" key={activePart.id}>
-              <span className="part-eyebrow">{activePart.eyebrow}</span>
-              <h2>{activePart.name}</h2>
-              <p>{activePart.description}</p>
-              <div className="fact-callout"><span><Lightbulb aria-hidden="true" /></span><p><b>NASA FACT</b>{activePart.fact}</p></div>
-              <div className="added-to-log"><Check aria-hidden="true" /> PART ADDED TO YOUR LOG</div>
-            </div>
-          ) : (
-            <div className="log-empty"><span className="scan-orbit"><ScanLine aria-hidden="true" /></span><h2>What makes<br />Ingenuity fly?</h2><p>Tap one of the glowing scan points to explore a real part of the helicopter.</p><span className="log-prompt">START WITH A GLOWING MARKER</span></div>
-          )}
-          <div className="log-footer"><span className="log-footer-dot" /> YOUR DISCOVERIES STAY IN THIS TAB</div>
-        </aside>
-      </div>
-
-      <div className="stage-action-row"><Button className="quiet-button" variant="outline" type="button" onClick={onBack}><ArrowLeft data-icon="inline-start" aria-hidden="true" /> BACK TO MISSIONS</Button><span className="stage-action-note">{allDiscovered ? "All three parts are in your log. Ready to think like an engineer?" : `${INGENUITY_PARTS.length - discovered.length} more ${INGENUITY_PARTS.length - discovered.length === 1 ? "part" : "parts"} to discover before your challenge.`}</span><Button className="action-button" type="button" disabled={!allDiscovered} onClick={onContinue}>{allDiscovered ? "THINK LIKE AN ENGINEER" : "SCAN ALL 3 PARTS"} {allDiscovered ? <ArrowRight data-icon="inline-end" aria-hidden="true" /> : <LockKeyhole data-icon="inline-start" aria-hidden="true" />}</Button></div>
-    </section>
-  )
+function MissionCard({ mission, completed, selected, onSelect }: { mission: MissionRecord; completed: boolean; selected: boolean; onSelect: (mission: MissionId) => void }) {
+  return <button className={`mission-card mission-card-image mission-card-${mission.accent}${selected ? " is-selected" : ""}`} type="button" onClick={() => onSelect(mission.id)} aria-pressed={selected}>
+    <span className="mission-card-top"><span className="mission-number">MISSION {mission.number}</span><span className={`mission-status${completed ? " is-complete" : ""}`}><span /> {completed ? "COMPLETE" : "PLAYABLE"}</span></span>
+    <span className="mission-card-photo"><img src={mission.image} alt={mission.imageAlt} loading="lazy" onError={(event) => { event.currentTarget.style.display = "none" }} /><span className="photo-overlay" /><span className="photo-credit">{mission.imageCredit}</span></span>
+    <span className="mission-card-copy"><span className="mission-title">{mission.title}</span><span className="mission-summary">{mission.subtitle}</span></span>
+    <span className="mission-card-details"><span><small>ARTIFACT</small><b>{mission.artifact}</b></span><span><small>LOCATION</small><b>{mission.location}</b></span></span>
+    <span className="mission-card-action">{completed ? "REPLAY OR REVIEW" : "START INVESTIGATION"} <ArrowRight data-icon="inline-end" aria-hidden="true" /></span>
+  </button>
 }
 
-export function EngineeringScreen({
-  ready,
-  choice,
-  onReady,
-  onChoose,
-  onContinue,
-  onBack,
-}: {
-  ready: boolean
-  choice: EngineeringChoiceId | null
-  onReady: () => void
-  onChoose: (choice: EngineeringChoiceId) => void
-  onContinue: () => void
-  onBack: () => void
-}) {
-  const selectedChoice = ENGINEERING_CHOICES.find((option) => option.id === choice)
-
-  return (
-    <section className="engineering-stage" aria-labelledby="stage-title">
-      <div className="engineering-heading">
-        <div className="eyebrow"><span className="eyebrow-line" /> STAGE 04 <span className="eyebrow-dot">·</span> ENGINEERING LAB</div>
-        <h1 id="stage-title" data-stage-title tabIndex={-1}>Think like a <span>NASA engineer</span></h1>
-        <p className="stage-intro">Mars has an extremely thin atmosphere. How could engineers make a helicopter fly there?</p>
-      </div>
-
-      {!ready ? (
-        <div className="think-card">
-          <div className="think-art" aria-hidden="true"><div className="air-ring ring-one" /><div className="air-ring ring-two" /><Wind /><span>THIN AIR</span></div>
-          <div className="think-copy"><span className="section-kicker">YOUR DESIGN CHALLENGE</span><h2>Take a moment to picture it.</h2><p>Imagine a tiny helicopter above the red dust. What kind of rotors could push against so little air?</p><Button className="action-button" type="button" onClick={onReady}>I&apos;M READY TO DECIDE <ArrowRight data-icon="inline-end" aria-hidden="true" /></Button><Button className="quiet-button" variant="outline" type="button" onClick={onBack}><ArrowLeft data-icon="inline-start" aria-hidden="true" /> BACK TO DISCOVERY</Button><span className="no-timer-note"><CircleHelp aria-hidden="true" /> No time limit. Think it through at your own pace.</span></div>
-        </div>
-      ) : (
-        <div className="engineering-work">
-          <div className="choice-panel">
-              <div className="choice-panel-heading"><div><span className="section-kicker">EDUCATIONAL SIMULATION</span><h2>Choose a rotor design</h2></div><Button className="quiet-button compact-back" variant="outline" type="button" onClick={onBack}><ArrowLeft data-icon="inline-start" aria-hidden="true" /> BACK</Button><span className="choice-step">A <i>·</i> B <i>·</i> C</span></div>
-            <fieldset className="choice-list">
-              <legend className="sr-only">Pick an engineering design</legend>
-              {ENGINEERING_CHOICES.map((option, index) => (
-                <label className={`decision-option${choice === option.id ? " is-selected" : ""}`} key={option.id}>
-                  <input type="radio" name="engineering-choice" value={option.id} checked={choice === option.id} onChange={() => onChoose(option.id)} />
-                  <span className="decision-letter">{String.fromCharCode(65 + index)}</span>
-                  <span className="decision-copy"><b>{option.title}</b><small>{index === 0 ? "Keep it small and simple" : index === 1 ? "Go big, spin fast, stay light" : "Use a heavier, familiar design"}</small></span>
-                  <span className="decision-check"><Check aria-hidden="true" /></span>
-                </label>
-              ))}
-            </fieldset>
-            <p className="simulation-disclaimer"><LockKeyhole aria-hidden="true" /> This activity is an educational simulation inspired by real engineering challenges—not a recreation of NASA&apos;s internal decision process.</p>
-          </div>
-
-          <div className="answer-panel" aria-live="polite">
-            {selectedChoice ? (
-              <>
-                <div className={`choice-feedback${selectedChoice.id === "large" ? " feedback-good" : ""}`}><span className="feedback-icon">{selectedChoice.id === "large" ? <Check aria-hidden="true" /> : <Lightbulb aria-hidden="true" />}</span><div><span className="section-kicker">YOUR DESIGN IDEA</span><p>{selectedChoice.feedback}</p></div></div>
-                <div className="nasa-answer"><div className="nasa-answer-heading"><span className="nasa-answer-icon"><Rocket aria-hidden="true" /></span><span><small>WHAT NASA ACTUALLY DID</small><b>The real Ingenuity design</b></span></div><p>NASA paired a lightweight helicopter with large, fast-spinning rotors. That combination helped Ingenuity lift in Mars&apos; super-thin air.</p><span className="fact-tag">REAL MISSION FACT</span></div>
-                <Button className="action-button continue-button" type="button" onClick={onContinue}>CONTINUE TO THE FINAL DISCOVERY <ArrowRight data-icon="inline-end" aria-hidden="true" /></Button>
-              </>
-            ) : (
-              <div className="answer-wait"><span className="answer-orbit"><Lightbulb aria-hidden="true" /></span><h3>Your test flight is waiting.</h3><p>Pick one design to see what might work—and what NASA actually built.</p><span>NO WRONG TURNS. JUST NEW CLUES.</span></div>
-            )}
-          </div>
-        </div>
-      )}
-    </section>
-  )
+export function ArrivalScreen({ mission, interest, ageBand, onContinue, onBack }: { mission: MissionRecord; interest: ExplorerInterest; ageBand: AgeBand; onContinue: () => void; onBack: () => void }) {
+  const profile = INTEREST_PROFILES[interest]
+  return <section className="arrival-stage" aria-labelledby="stage-title"><div className="arrival-hero"><div className="arrival-copy"><div className="eyebrow"><span className="eyebrow-line" /> STAGE 01 <span className="eyebrow-dot">·</span> ARRIVAL</div><h1 id="stage-title" data-stage-title tabIndex={-1}>A signal from <span>{mission.planet}</span>.</h1><p>{mission.arrival}</p><div className="arrival-lens"><Sparkles aria-hidden="true" /><span><b>{interest} lens</b>{profile.arrival}</span></div><div className="stage-action-row"><Button className="quiet-button" variant="outline" type="button" onClick={onBack}><ArrowLeft data-icon="inline-start" aria-hidden="true" /> MISSION SELECT</Button><Button className="action-button" type="button" onClick={onContinue}>ENTER THE SCENE <ArrowRight data-icon="inline-end" aria-hidden="true" /></Button></div></div><MissionImage mission={mission} /></div><div className="arrival-fact"><span className="fact-badge"><Check aria-hidden="true" /> NASA FACT</span><p>{mission.why}</p><span className="fact-credit">{mission.sourceLabel}</span></div></section>
 }
 
-export function LegacyScreen({
-  prediction,
-  onPrediction,
-  onContinue,
-  onBack,
-}: {
-  prediction: FuturePredictionId | null
-  onPrediction: (prediction: FuturePredictionId) => void
-  onContinue: () => void
-  onBack: () => void
-}) {
-  const selectedPrediction = FUTURE_PREDICTIONS.find((option) => option.id === prediction)
+function MissionImage({ mission, archive = false }: { mission: MissionRecord; archive?: boolean }) { return <figure className={`mission-hero-image mission-hero-image-${mission.accent}${archive ? " is-archive" : ""}`}><img src={mission.image} alt={mission.imageAlt} onError={(event) => { event.currentTarget.style.display = "none" }} /><figcaption><span>ACTUAL NASA IMAGE</span>{mission.imageCredit}</figcaption></figure> }
 
-  return (
-    <section className="legacy-stage" aria-labelledby="stage-title">
-      <div className="eyebrow"><span className="eyebrow-line" /> STAGE 05 <span className="eyebrow-dot">·</span> THE FINAL DISCOVERY</div>
-      <div className="legacy-header"><div><h1 id="stage-title" data-stage-title tabIndex={-1}>A little helicopter.<br /><span>A huge legacy.</span></h1><p>Ingenuity completed 72 flights—far beyond its original five-flight test. After rotor damage during its final landing in January 2024, it could no longer fly. It still rests on Mars.</p></div><div className="legacy-emblem" aria-hidden="true"><div className="legacy-planet"><span /><i /><b /></div><div className="legacy-star legacy-star-one"><Star /></div><div className="legacy-star legacy-star-two"><Sparkles /></div><span className="legacy-emblem-caption">72 FLIGHTS<br />ONE NEW WORLD</span></div></div>
-
-      <div className="legacy-fact-strip"><span className="fact-badge"><Check aria-hidden="true" /> NASA FACT</span><p>Ingenuity proved that controlled, powered flight is possible on another planet.</p><span className="fact-credit">NASA · MARS 2020 MISSION</span></div>
-
-      <div className="legacy-question"><div className="question-heading"><span className="question-mark"><CircleHelp aria-hidden="true" /></span><div><span className="section-kicker">A WHAT-IF QUESTION</span><h2>What if Ingenuity had never flown?</h2><p>Choose one possibility that makes you curious. There are no wrong guesses.</p></div></div>
-        <fieldset className="prediction-list">
-          <legend className="sr-only">What might humanity have missed?</legend>
-          {FUTURE_PREDICTIONS.map((option, index) => (
-            <label className={`prediction-option${prediction === option.id ? " is-selected" : ""}`} key={option.id}>
-              <input type="radio" name="future-prediction" value={option.id} checked={prediction === option.id} onChange={() => onPrediction(option.id)} />
-              <span className="prediction-number">0{index + 1}</span><span>{option.text}</span><span className="prediction-check"><Check aria-hidden="true" /></span>
-            </label>
-          ))}
-        </fieldset>
-
-        {selectedPrediction && <div className="legacy-reveal" role="status"><span className="reveal-icon"><Sparkles aria-hidden="true" /></span><div><span className="section-kicker">WHAT INGENUITY ACTUALLY SHOWED</span><p>That future is a possibility, not a fact. What we know: Ingenuity made the first powered, controlled flights on another planet and showed how aerial scouts could help future missions explore from above.</p></div></div>}
-
-        <div className="legacy-bottom"><Button className="quiet-button" variant="outline" type="button" onClick={onBack}><ArrowLeft data-icon="inline-start" aria-hidden="true" /> BACK TO ENGINEERING</Button><a className="nasa-link" href="https://www.jpl.nasa.gov/missions/ingenuity/" target="_blank" rel="noreferrer">VISIT NASA&apos;S INGENUITY MISSION PAGE <ExternalLink aria-hidden="true" /></a>{selectedPrediction && <Button className="action-button" type="button" onClick={onContinue}>BUILD MY MISSION REPORT <ArrowRight data-icon="inline-end" aria-hidden="true" /></Button>}</div>
-      </div>
-    </section>
-  )
+export function InvestigationScreen({ mission, interest, ageBand, discovered, selected, onSelect, onContinue, onBack }: { mission: MissionRecord; interest: ExplorerInterest; ageBand: AgeBand; discovered: string[]; selected: string | null; onSelect: (id: string) => void; onContinue: () => void; onBack: () => void }) {
+  const active = mission.components.find((component) => component.id === selected)
+  const profile = INTEREST_PROFILES[interest]
+  const allDiscovered = discovered.length === mission.components.length
+  return <section className="investigation-stage" aria-labelledby="stage-title"><div className="stage-heading-row"><div><div className="eyebrow"><span className="eyebrow-line" /> STAGE 02 <span className="eyebrow-dot">·</span> INVESTIGATION</div><h1 id="stage-title" data-stage-title tabIndex={-1}>Meet <span>{mission.shortTitle}</span></h1><p className="stage-intro">{profile.clue} {ageBand === "younger" ? "Use the glowing markers and short clues." : ageBand === "older" ? "Compare the component's job with the mission's larger trade-offs." : "Start with any glowing component."}</p></div><div className="discovery-meter"><span>CLUES FOUND</span><b>{discovered.length}<i> / {mission.components.length}</i></b><span className="meter-bars">{mission.components.map((component) => <i key={component.id} className={discovered.includes(component.id) ? "is-filled" : ""} />)}</span></div></div><div className="investigation-layout"><MissionImage mission={mission} archive /><aside className="discovery-log" aria-live="polite"><div className="log-heading"><span className="log-icon"><ImageIcon aria-hidden="true" /></span><span>DISCOVERY LOG <i>·</i> {mission.number}</span><span className="log-live"><span /> LIVE</span></div>{active ? <div className="part-discovery" key={active.id}><span className="part-eyebrow">COMPONENT CLUE</span><h2>{active.name}</h2><p>{active.description}</p><div className="fact-callout"><span><Lightbulb aria-hidden="true" /></span><p><b>OBSERVATION</b>{active.observation}</p></div><div className="added-to-log"><Check aria-hidden="true" /> CLUE ADDED TO YOUR LOG</div></div> : <div className="log-empty"><span className="scan-orbit"><ImageIcon aria-hidden="true" /></span><h2>What makes<br />this machine matter?</h2><p>Choose a glowing component to uncover the first clue.</p><span className="log-prompt">SCAN THE EQUIPMENT</span></div>}<div className="log-footer"><span className="log-footer-dot" /> {discovered.length} OF {mission.components.length} CLUES RECORDED</div></aside></div><div className="investigation-parts">{mission.components.map((component, index) => <button type="button" key={component.id} className={`component-chip${discovered.includes(component.id) ? " is-found" : ""}`} onClick={() => onSelect(component.id)}><span>0{index + 1}</span>{component.name}<Check aria-hidden="true" /></button>)}</div><div className="stage-action-row"><Button className="quiet-button" variant="outline" type="button" onClick={onBack}><ArrowLeft data-icon="inline-start" aria-hidden="true" /> BACK TO ARRIVAL</Button><span className="stage-action-note">{allDiscovered ? "Every component is in your log." : `${mission.components.length - discovered.length} more clue${mission.components.length - discovered.length === 1 ? "" : "s"} to scan.`}</span><Button className="action-button" type="button" disabled={!allDiscovered} onClick={onContinue}>{allDiscovered ? "OPEN THE ENGINEERING CHALLENGE" : "SCAN ALL CLUES"} {allDiscovered ? <ArrowRight data-icon="inline-end" aria-hidden="true" /> : <Gauge data-icon="inline-start" aria-hidden="true" />}</Button></div></section>
 }
 
-export function MissionReportScreen({
-  nickname,
-  engineeringChoice,
-  prediction,
-  onRestart,
-  onBackToMissions,
-}: {
-  nickname: string
-  engineeringChoice: EngineeringChoiceId
-  prediction: FuturePredictionId
-  onRestart: () => void
-  onBackToMissions: () => void
-}) {
-  const choice = ENGINEERING_CHOICES.find((option) => option.id === engineeringChoice)
-  const future = FUTURE_PREDICTIONS.find((option) => option.id === prediction)
+export function ChallengeScreen({ mission, interest, ageBand, selectedChoice, controls, tested, onControl, onChoose, onTest, onContinue, onBack }: { mission: MissionRecord; interest: ExplorerInterest; ageBand: AgeBand; selectedChoice: string | null; controls: Record<string, number>; tested: boolean; onControl: (name: string, value: number) => void; onChoose: (id: string) => void; onTest: () => void; onContinue: () => void; onBack: () => void }) {
+  const selected = mission.challengeChoices.find((choice) => choice.id === selectedChoice)
+  const profile = INTEREST_PROFILES[interest]
+  const liftScore = mission.challengeType === "rotor" ? Math.max(0, Math.min(100, Math.round(controls.rotorSize * 0.34 + controls.rotorSpeed * 0.48 - controls.weight * 0.3))) : 0
+  return <section className="challenge-stage" aria-labelledby="stage-title"><div className="eyebrow"><span className="eyebrow-line" /> STAGE 03 <span className="eyebrow-dot">·</span> ENGINEERING CHALLENGE</div><div className="challenge-heading"><div><h1 id="stage-title" data-stage-title tabIndex={-1}>{mission.challengeTitle}</h1><p className="stage-intro">{mission.challengeIntro} {ageBand === "older" ? "Try to explain the trade-off, not just the outcome." : profile.clue}</p></div><span className="simulation-pill"><Gauge aria-hidden="true" /> EDUCATIONAL SIMULATION</span></div><div className={`challenge-work challenge-work-${mission.challengeType}`}>{mission.challengeType === "rotor" ? <div className="control-panel"><div className="control-panel-heading"><span className="section-kicker">TEST FLIGHT CONTROLS</span><span className="control-readout">{liftScore}% LIFT</span></div><RangeControl label="Rotor size" value={controls.rotorSize} onChange={(value) => onControl("rotorSize", value)} /><RangeControl label="Rotor speed" value={controls.rotorSpeed} onChange={(value) => onControl("rotorSpeed", value)} /><RangeControl label="Helicopter weight" value={controls.weight} onChange={(value) => onControl("weight", value)} inverse /><div className="lift-visual"><span className="lift-horizon" /><span className="lift-heli" style={{ transform: `translateY(${Math.max(-20, 28 - liftScore * 0.5)}px) rotate(${liftScore > 55 ? 0 : -5}deg)` }}><Wind aria-hidden="true" /></span><span className="lift-label">{liftScore > 65 ? "STABLE HOVER" : liftScore > 40 ? "CLIMBING" : "DUST SKIM"}</span></div><Button className="action-button" type="button" onClick={onTest}>{tested ? "TEST FLIGHT RECORDED" : "RUN TEST FLIGHT"} <ArrowRight data-icon="inline-end" aria-hidden="true" /></Button></div> : <div className="choice-panel"><div className="choice-panel-heading"><div><span className="section-kicker">FIELD DECISION</span><h2>{profile.skill === "evidence-based reasoning" ? "Which clue gives you the best evidence?" : "Where will you focus the mission?"}</h2></div><span className="choice-step">CHOOSE ONE</span></div><div className="decision-grid">{mission.challengeChoices.map((choice) => <button type="button" key={choice.id} className={`decision-option${selectedChoice === choice.id ? " is-selected" : ""}`} onClick={() => onChoose(choice.id)}><span className="decision-letter">{choice.id.slice(0, 1).toUpperCase()}</span><span className="decision-copy"><b>{choice.label}</b><small>{choice.hint}</small></span><span className="decision-check"><Check aria-hidden="true" /></span></button>)}</div>{selected && <div className="choice-feedback"><span className="feedback-icon"><Lightbulb aria-hidden="true" /></span><div><span className="section-kicker">CONSEQUENCE</span><p>{selected.feedback}</p><small>{selected.consequence}</small></div></div>}<Button className="action-button" type="button" disabled={!selectedChoice} onClick={onTest}>{tested ? "DECISION RECORDED" : "RECORD MY DECISION"} <ArrowRight data-icon="inline-end" aria-hidden="true" /></Button></div>}<div className="challenge-side"><div className="challenge-signal"><Sparkles aria-hidden="true" /><span><b>{mission.shortTitle} field note</b>{profile.arrival}</span></div><div className="challenge-explanation"><span className="section-kicker">WHY IT MATTERS</span><p>{mission.why}</p></div><div className="simulation-disclaimer"><CircleHelp aria-hidden="true" /> This is a team-created educational simulation inspired by a real mission. It does not reproduce NASA's exact engineering calculations or internal decisions.</div></div></div><div className="stage-action-row"><Button className="quiet-button" variant="outline" type="button" onClick={onBack}><ArrowLeft data-icon="inline-start" aria-hidden="true" /> BACK TO INVESTIGATION</Button><span className="stage-action-note">{tested ? "Your choice has a consequence. Next, compare it with NASA's documented approach." : "Try an option. An ineffective idea is still a useful clue."}</span><Button className="action-button" type="button" disabled={!tested} onClick={onContinue}>COMPARE WITH NASA <ArrowRight data-icon="inline-end" aria-hidden="true" /></Button></div></section>
+}
+
+function RangeControl({ label, value, onChange, inverse = false }: { label: string; value: number; onChange: (value: number) => void; inverse?: boolean }) { return <label className="range-control"><span><b>{label}</b><small>{value}%</small></span><input type="range" min="10" max="100" value={value} onChange={(event) => onChange(Number(event.target.value))} aria-label={label} /><i className={inverse ? "range-direction inverse" : "range-direction"} /></label> }
+
+export function HistoryScreen({ mission, choice, onContinue, onBack }: { mission: MissionRecord; choice: string | null; onContinue: () => void; onBack: () => void }) {
+  const selected = mission.challengeChoices.find((item) => item.id === choice)
+  return <section className="history-stage" aria-labelledby="stage-title"><div className="eyebrow"><span className="eyebrow-line" /> STAGE 04 <span className="eyebrow-dot">·</span> WHAT NASA ACTUALLY DID</div><div className="history-heading"><div><h1 id="stage-title" data-stage-title tabIndex={-1}>Your idea meets <span>the archive.</span></h1><p className="stage-intro">{selected?.feedback ?? "You made a field decision."} Now compare the simplified result with the documented mission story.</p></div><span className="history-stamp"><Check aria-hidden="true" /> VERIFIED STORY</span></div><div className="history-compare"><div className="compare-card player-card"><span className="section-kicker">YOUR FIELD DECISION</span><h2>{selected?.label ?? "A careful observation"}</h2><p>{selected?.consequence ?? "You collected a clue to carry forward."}</p><span className="compare-tag">TEAM SIMULATION</span></div><div className="compare-arrow" aria-hidden="true"><ArrowRight /></div><div className="compare-card nasa-card"><span className="section-kicker">NASA'S DOCUMENTED APPROACH</span><h2>How the real mission worked</h2><p>{mission.nasaApproach}</p><span className="compare-tag">NASA MISSION EVIDENCE</span></div></div><MissionArchive mission={mission} /><div className="stage-action-row"><Button className="quiet-button" variant="outline" type="button" onClick={onBack}><ArrowLeft data-icon="inline-start" aria-hidden="true" /> BACK TO CHALLENGE</Button><span className="stage-action-note">Historical facts and the simulation are kept separate on purpose.</span><Button className="action-button" type="button" onClick={onContinue}>OPEN FINAL TRANSMISSION <ArrowRight data-icon="inline-end" aria-hidden="true" /></Button></div></section>
+}
+
+export function TransmissionScreen({ mission, onContinue, onBack }: { mission: MissionRecord; onContinue: () => void; onBack: () => void }) {
+  return <section className="transmission-stage" aria-labelledby="stage-title"><div className="transmission-hero"><div><div className="eyebrow"><span className="eyebrow-line" /> STAGE 05 <span className="eyebrow-dot">·</span> FINAL TRANSMISSION</div><h1 id="stage-title" data-stage-title tabIndex={-1}>The signal goes <span>quiet.</span></h1><p className="stage-intro">{mission.finalTransmission}</p></div><div className="transmission-console" aria-label="Mission status transmission"><span className="console-dot" /><small>ARCHIVE STATUS</small><b>{mission.status}</b><i>LAST KNOWN STATE</i></div></div><div className="transmission-grid"><div className="transmission-card"><span className="section-kicker">WHAT HAPPENED</span><p>{mission.actualResult}</p></div><div className="transmission-card"><span className="section-kicker">WHY IT STAYS</span><p>{mission.status}. Leaving equipment behind does not erase the work it made possible.</p></div></div><div className="stage-action-row"><Button className="quiet-button" variant="outline" type="button" onClick={onBack}><ArrowLeft data-icon="inline-start" aria-hidden="true" /> BACK TO ARCHIVE</Button><span className="stage-action-note">A final transmission can become a first clue for the next mission.</span><Button className="action-button" type="button" onClick={onContinue}>OPEN THE LEGACY FILE <ArrowRight data-icon="inline-end" aria-hidden="true" /></Button></div></section>
+}
+
+export function LegacyScreen({ mission, prediction, onPrediction, onContinue, onBack }: { mission: MissionRecord; prediction: string | null; onPrediction: (value: string) => void; onContinue: () => void; onBack: () => void }) {
+  return <section className="legacy-stage" aria-labelledby="stage-title"><div className="eyebrow"><span className="eyebrow-line" /> STAGE 06 <span className="eyebrow-dot">·</span> SCIENTIFIC LEGACY</div><div className="legacy-header"><div><h1 id="stage-title" data-stage-title tabIndex={-1}>{mission.legacyTitle}</h1><p>{mission.legacy}</p></div><div className="legacy-emblem" aria-hidden="true"><div className={`legacy-planet legacy-planet-${mission.accent}`}><span /><i /><b /></div><span className="legacy-emblem-caption">ONE MACHINE<br />MANY FUTURES</span></div></div><div className="legacy-fact-strip"><span className="fact-badge"><Check aria-hidden="true" /> DOCUMENTED LEGACY</span><p>{mission.discoveries[0]}</p><span className="fact-credit">NASA ARCHIVE</span></div><div className="legacy-question"><div className="question-heading"><span className="question-mark"><CircleHelp aria-hidden="true" /></span><div><span className="section-kicker">A WHAT-IF REFLECTION</span><h2>{mission.whatIfPrompt}</h2><p>Choose a possibility, then keep the difference between a hypothesis and a documented result in view.</p></div></div><div className="prediction-list">{mission.whatIfChoices.map((option, index) => <button type="button" key={option} className={`prediction-option${prediction === String(index) ? " is-selected" : ""}`} onClick={() => onPrediction(String(index))}><span className="prediction-number">0{index + 1}</span><span>{option}</span><span className="prediction-check"><Check aria-hidden="true" /></span></button>)}</div>{prediction !== null && <div className="legacy-reveal" role="status"><span className="reveal-icon"><Sparkles aria-hidden="true" /></span><div><span className="section-kicker">DOCUMENTED ACHIEVEMENT</span><p>{mission.actualResult} Your choice is a thoughtful hypothesis; the archive record is the evidence we can point to.</p></div></div>}</div><div className="legacy-bottom"><Button className="quiet-button" variant="outline" type="button" onClick={onBack}><ArrowLeft data-icon="inline-start" aria-hidden="true" /> BACK TO TRANSMISSION</Button><a className="nasa-link" href={mission.missionSource} target="_blank" rel="noreferrer">VISIT NASA MISSION PAGE <ExternalLink aria-hidden="true" /></a>{prediction !== null && <Button className="action-button" type="button" onClick={onContinue}>BUILD MY REPORT <ArrowRight data-icon="inline-end" aria-hidden="true" /></Button>}</div></section>
+}
+
+export function MissionReportScreen({ mission, nickname, ageBand, interest, discovered, choice, prediction, challengeSummary, onReplay, onExploreAnother }: { mission: MissionRecord; nickname: string; ageBand: AgeBand; interest: ExplorerInterest; discovered: string[]; choice: string | null; prediction: string | null; challengeSummary: string; onReplay: () => void; onExploreAnother: () => void }) {
   const explorer = nickname.trim() || "Explorer"
-
-  return (
-    <section className="report-stage" aria-labelledby="stage-title">
-      <div className="report-celebration"><div className="report-spark report-spark-one"><Sparkles aria-hidden="true" /></div><div className="report-spark report-spark-two"><Star aria-hidden="true" /></div><span className="report-medal"><Award aria-hidden="true" /></span></div>
-      <div className="report-heading"><div className="eyebrow"><span className="eyebrow-line" /> STAGE 06 <span className="eyebrow-dot">·</span> YOUR MISSION REPORT</div><h1 id="stage-title" data-stage-title tabIndex={-1}>Mission <span>complete.</span></h1><p>Nice work, {explorer}. You uncovered a forgotten explorer&apos;s legacy.</p></div>
-
-      <article className="mission-report-card">
-        <div className="report-card-header"><div className="report-card-brand"><span className="report-brand-mark"><Rocket aria-hidden="true" /></span><span><small>FORGOTTEN, NOT GONE</small><b>EXPLORER FIELD REPORT</b></span></div><span className="report-stamp"><Check aria-hidden="true" /> COMPLETE</span></div>
-        <div className="report-facts-grid">
-          <div><span>EXPLORER</span><b>{explorer}</b></div>
-          <div><span>MISSION</span><b>Ingenuity</b></div>
-          <div><span>PLANET</span><b>Mars</b></div>
-          <div><span>PARTS DISCOVERED</span><b>03 / 03</b></div>
-        </div>
-        <div className="report-detail-row"><span className="report-detail-icon"><Wind aria-hidden="true" /></span><div><span>YOUR ENGINEERING DECISION</span><b>{choice?.title}</b></div></div>
-        <div className="report-detail-row"><span className="report-detail-icon"><Lightbulb aria-hidden="true" /></span><div><span>ONE SCIENTIFIC ACHIEVEMENT</span><b>Ingenuity made the first powered, controlled flights on another planet.</b></div></div>
-        <div className="report-detail-row prediction-report"><span className="report-detail-icon"><CircleHelp aria-hidden="true" /></span><div><span>YOUR WHAT-IF</span><b>{future?.text}</b></div></div>
-        <div className="report-message"><Heart aria-hidden="true" /><p>Mission Complete — You&apos;ve uncovered a forgotten explorer&apos;s legacy!</p></div>
-      </article>
-
-      <section className="nasa-sources" aria-labelledby="sources-heading">
-        <div className="sources-heading"><span className="section-kicker">NASA SOURCES</span><h2 id="sources-heading">Keep exploring</h2><p>These official NASA resources helped shape this mission. Forgotten, Not Gone is an independent educational prototype and is not endorsed by NASA.</p></div>
-        <ul className="source-list">
-          <li><a href="https://science.nasa.gov/mission/mars-2020-perseverance/ingenuity-mars-helicopter/" target="_blank" rel="noreferrer">Ingenuity Mars Helicopter <ExternalLink aria-hidden="true" /></a><span>NASA Science</span></li>
-          <li><a href="https://nssdc.gsfc.nasa.gov/nmc/spacecraft/display.action?id=1969-059C" target="_blank" rel="noreferrer">Apollo Lunar Module <ExternalLink aria-hidden="true" /></a><span>NASA NSSDC</span></li>
-          <li><a href="https://nssdc.gsfc.nasa.gov/" target="_blank" rel="noreferrer">Space Science Data Archive <ExternalLink aria-hidden="true" /></a><span>NASA NSSDC</span></li>
-        </ul>
-      </section>
-      <div className="report-actions"><Button className="action-button" type="button" onClick={onRestart}><RotateCcw data-icon="inline-start" aria-hidden="true" /> RESTART ADVENTURE</Button><Button className="quiet-button" type="button" variant="outline" onClick={onBackToMissions}>BACK TO MISSION SELECTION <ChevronRight data-icon="inline-end" aria-hidden="true" /></Button></div>
-      <p className="report-footer-note"><Star aria-hidden="true" /> The next mystery is still waiting among the stars.</p>
-    </section>
-  )
+  const selected = mission.challengeChoices.find((item) => item.id === choice)
+  const profile = INTEREST_PROFILES[interest]
+  return <section className="report-stage" aria-labelledby="stage-title"><div className="report-celebration"><div className="report-spark report-spark-one"><Sparkles aria-hidden="true" /></div><div className="report-spark report-spark-two"><Star aria-hidden="true" /></div><span className="report-medal"><Rocket aria-hidden="true" /></span></div><div className="report-heading"><div className="eyebrow"><span className="eyebrow-line" /> STAGE 07 <span className="eyebrow-dot">·</span> MISSION REPORT</div><h1 id="stage-title" data-stage-title tabIndex={-1}>Mission <span>complete.</span></h1><p>Nice work, {explorer}. You uncovered why {mission.shortTitle} is {mission.status.toLowerCase()}—and why its story continues.</p></div><article className="mission-report-card"><div className="report-card-header"><div className="report-card-brand"><span className="report-brand-mark"><Rocket aria-hidden="true" /></span><span><small>FORGOTTEN, NOT GONE</small><b>EXPLORER FIELD REPORT</b></span></div><span className="report-stamp"><Check aria-hidden="true" /> COMPLETE</span></div><div className="report-facts-grid"><div><span>EXPLORER</span><b>{explorer}</b></div><div><span>MISSION</span><b>{mission.shortTitle}</b></div><div><span>AGE DECK</span><b>{ageBand === "younger" ? "10–11" : ageBand === "older" ? "12–14" : "OPEN"}</b></div><div><span>CLUES FOUND</span><b>{discovered.length} / {mission.components.length}</b></div></div><div className="report-detail-row"><span className="report-detail-icon"><Gauge aria-hidden="true" /></span><div><span>YOUR FIELD DECISION</span><b>{selected?.label ?? "Exploration observation"}</b><small>{challengeSummary}</small></div></div><div className="report-detail-row"><span className="report-detail-icon"><Lightbulb aria-hidden="true" /></span><div><span>NASA'S DOCUMENTED APPROACH</span><b>{mission.nasaApproach}</b></div></div><div className="report-detail-row"><span className="report-detail-icon"><Atom aria-hidden="true" /></span><div><span>SCIENTIFIC LEGACY</span><b>{mission.legacy}</b></div></div><div className="report-detail-row prediction-report"><span className="report-detail-icon"><CircleHelp aria-hidden="true" /></span><div><span>YOUR HYPOTHESIS</span><b>{prediction !== null ? mission.whatIfChoices[Number(prediction)] : "No hypothesis selected"}</b><small>{profile.skill} · {mission.discoveries[1]}</small></div></div><div className="report-message"><Sparkles aria-hidden="true" /><p>Mission complete — your questions are now part of the archive.</p></div></article><MissionArchive mission={mission} compact /><div className="report-actions"><Button className="action-button" type="button" onClick={() => window.print()}><Printer data-icon="inline-start" aria-hidden="true" /> PRINT / SAVE PDF</Button><Button className="quiet-button" type="button" variant="outline" onClick={onReplay}><RotateCcw data-icon="inline-start" aria-hidden="true" /> REPLAY MISSION</Button><Button className="quiet-button" type="button" variant="outline" onClick={onExploreAnother}>EXPLORE ANOTHER <ArrowRight data-icon="inline-end" aria-hidden="true" /></Button></div><p className="report-footer-note"><Star aria-hidden="true" /> NASA sources and media credits are listed beside the evidence. This project is not endorsed by NASA.</p></section>
 }

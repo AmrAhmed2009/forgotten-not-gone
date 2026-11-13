@@ -125,7 +125,7 @@ export function IngenuityScene({
           <ul aria-label="Parts to discover">
             {INGENUITY_PARTS.map((part) => (
               <li key={part.id} className={discovered.includes(part.id) ? "is-discovered" : ""}>
-                <span className="scene-key-dot" />{part.shortName}
+                <span className="scene-key-dot" />{part.name}
               </li>
             ))}
           </ul>

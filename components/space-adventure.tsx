@@ -1,48 +1,34 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
-import { ArrowUpRight, Compass, Radio, Sparkles, Star } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import {
-  ENGINEERING_CHOICES,
-  FUTURE_PREDICTIONS,
-  type EngineeringChoiceId,
-  type ExplorerInterest,
-  type FuturePredictionId,
-  type MachinePartId,
-} from "@/components/adventure-content"
-import {
-  DiscoveryScreen,
-  EngineeringScreen,
-  LegacyScreen,
-  MissionReportScreen,
-  MissionSelectionScreen,
-  WelcomeScreen,
-} from "@/components/adventure-screens"
+import { Compass, Radio, Sparkles, Star } from "lucide-react"
+import { WelcomeScreen, MissionSelectionScreen, ArrivalScreen, InvestigationScreen, ChallengeScreen, HistoryScreen, TransmissionScreen, LegacyScreen, MissionReportScreen } from "@/components/adventure-screens"
+import { INTEREST_PROFILES, MISSION_DATA, type AgeBand, type ExplorerInterest, type MissionId } from "@/components/adventure-content"
 
-type AdventureStage = "welcome" | "selection" | "discovery" | "engineering" | "legacy" | "report"
+type AdventureStage = "welcome" | "selection" | "arrival" | "investigation" | "challenge" | "history" | "transmission" | "legacy" | "report"
 
-const stageNames = ["Welcome", "Mission", "Discover", "Engineer", "Legacy", "Report"]
-const stageIndex: Record<AdventureStage, number> = {
-  welcome: 0,
-  selection: 1,
-  discovery: 2,
-  engineering: 3,
-  legacy: 4,
-  report: 5,
-}
+const stageNames = ["Welcome", "Mission", "Arrival", "Investigate", "Challenge", "Archive", "Transmission", "Legacy", "Report"]
+const stageIndex: Record<AdventureStage, number> = { welcome: 0, selection: 1, arrival: 2, investigation: 3, challenge: 4, history: 5, transmission: 6, legacy: 7, report: 8 }
 
 export default function SpaceAdventure() {
   const [stage, setStage] = useState<AdventureStage>("welcome")
   const [nickname, setNickname] = useState("")
   const [age, setAge] = useState("")
   const [interest, setInterest] = useState<ExplorerInterest | null>(null)
-  const [discoveredParts, setDiscoveredParts] = useState<MachinePartId[]>([])
-  const [selectedPart, setSelectedPart] = useState<MachinePartId | null>(null)
-  const [readyToDecide, setReadyToDecide] = useState(false)
-  const [engineeringChoice, setEngineeringChoice] = useState<EngineeringChoiceId | null>(null)
-  const [prediction, setPrediction] = useState<FuturePredictionId | null>(null)
+  const [selectedMission, setSelectedMission] = useState<MissionId | null>(null)
+  const [completedMissions, setCompletedMissions] = useState<MissionId[]>([])
+  const [discovered, setDiscovered] = useState<string[]>([])
+  const [selectedComponent, setSelectedComponent] = useState<string | null>(null)
+  const [challengeChoice, setChallengeChoice] = useState<string | null>(null)
+  const [challengeTested, setChallengeTested] = useState(false)
+  const [prediction, setPrediction] = useState<string | null>(null)
+  const [controls, setControls] = useState({ rotorSize: 72, rotorSpeed: 78, weight: 28 })
   const previousStage = useRef(stage)
+
+  const mission = MISSION_DATA.find((item) => item.id === selectedMission) ?? null
+  const ageBand: AgeBand = age === "10" || age === "11" ? "younger" : age === "12" || age === "13" || age === "14" ? "older" : "unknown"
+  const activeIndex = stageIndex[stage]
+  const profile = interest ? INTEREST_PROFILES[interest] : null
 
   useEffect(() => {
     if (previousStage.current !== stage) {
@@ -51,109 +37,54 @@ export default function SpaceAdventure() {
     }
   }, [stage])
 
-  function beginMission() {
-    setDiscoveredParts([])
-    setSelectedPart(null)
-    setReadyToDecide(false)
-    setEngineeringChoice(null)
+  function startMission(id: MissionId) {
+    setSelectedMission(id)
+    setDiscovered([])
+    setSelectedComponent(null)
+    setChallengeChoice(null)
+    setChallengeTested(false)
     setPrediction(null)
-    setStage("discovery")
+    setControls({ rotorSize: 72, rotorSpeed: 78, weight: 28 })
+    setStage("arrival")
   }
 
-  function selectPart(part: MachinePartId) {
-    setSelectedPart(part)
-    setDiscoveredParts((current) => current.includes(part) ? current : [...current, part])
+  function beginChallenge() {
+    setChallengeChoice(null)
+    setChallengeTested(false)
+    setStage("challenge")
+  }
+
+  function recordChallenge() {
+    setChallengeTested(true)
+  }
+
+  function finishMission() {
+    if (selectedMission && !completedMissions.includes(selectedMission)) setCompletedMissions((current) => [...current, selectedMission])
+    setStage("report")
   }
 
   function restartAdventure() {
+    setStage("welcome")
     setNickname("")
     setAge("")
     setInterest(null)
-    setDiscoveredParts([])
-    setSelectedPart(null)
-    setReadyToDecide(false)
-    setEngineeringChoice(null)
+    setSelectedMission(null)
+    setCompletedMissions([])
+    setDiscovered([])
+    setSelectedComponent(null)
+    setChallengeChoice(null)
+    setChallengeTested(false)
     setPrediction(null)
-    setStage("welcome")
   }
 
-  const activeIndex = stageIndex[stage]
-  const reportChoice = ENGINEERING_CHOICES.find((option) => option.id === engineeringChoice)
-  const reportPrediction = FUTURE_PREDICTIONS.find((option) => option.id === prediction)
+  function exploreAnother() {
+    setSelectedMission(null)
+    setStage("selection")
+  }
 
-  return (
-    <main className="adventure-shell">
-      <div className="ambient-stars" aria-hidden="true" />
-      <header className="site-header">
-        <button className="brand" type="button" onClick={restartAdventure} aria-label="Forgotten, Not Gone, restart adventure">
-          <span className="brand-mark"><Sparkles aria-hidden="true" /></span>
-          <span className="brand-wordmark">forgotten,<br /><b>not gone.</b></span>
-        </button>
-        <div className="header-transmission"><span className="transmission-dot" /> SPACE EXPLORER PROGRAM <i>/</i> FIELD LOG 001</div>
-        <div className="header-mission"><Compass aria-hidden="true" /><span>MISSION <b>01</b></span><span className="header-planet">MARS</span></div>
-      </header>
+  function replayMission() {
+    if (selectedMission) startMission(selectedMission)
+  }
 
-      <nav className="stage-progress" aria-label="Adventure progress">
-        <ol>
-          {stageNames.map((name, index) => (
-            <li key={name} className={index < activeIndex ? "is-complete" : index === activeIndex ? "is-current" : ""} aria-current={index === activeIndex ? "step" : undefined}>
-              <span className="progress-number">{index < activeIndex ? <span aria-hidden="true">✓</span> : `0${index + 1}`}</span>
-              <span className="progress-name">{name}</span>
-            </li>
-          ))}
-        </ol>
-        <span className="progress-summary">STAGE <b>0{activeIndex + 1}</b> / 06</span>
-      </nav>
-
-      <div className="stage-content" key={stage}>
-        {stage === "welcome" && (
-          <WelcomeScreen
-            nickname={nickname}
-            age={age}
-            interest={interest}
-            onNicknameChange={setNickname}
-            onAgeChange={setAge}
-            onInterestChange={setInterest}
-            onLaunch={() => { setNickname((current) => current.trim()); setStage("selection") }}
-          />
-        )}
-        {stage === "selection" && interest && (
-          <MissionSelectionScreen nickname={nickname} interest={interest} onInvestigate={beginMission} onBack={() => setStage("welcome")} />
-        )}
-        {stage === "discovery" && (
-          <DiscoveryScreen
-            discovered={discoveredParts}
-            selected={selectedPart}
-            onSelect={selectPart}
-            onContinue={() => { setEngineeringChoice(null); setReadyToDecide(false); setStage("engineering") }}
-            onBack={() => setStage("selection")}
-          />
-        )}
-        {stage === "engineering" && (
-          <EngineeringScreen
-            ready={readyToDecide}
-            choice={engineeringChoice}
-            onReady={() => setReadyToDecide(true)}
-            onChoose={setEngineeringChoice}
-            onContinue={() => { setPrediction(null); setStage("legacy") }}
-            onBack={() => setStage("discovery")}
-          />
-        )}
-        {stage === "legacy" && (
-          <LegacyScreen prediction={prediction} onPrediction={setPrediction} onContinue={() => setStage("report")} onBack={() => setStage("engineering")} />
-        )}
-        {stage === "report" && reportChoice && reportPrediction && (
-          <MissionReportScreen
-            nickname={nickname}
-            engineeringChoice={reportChoice.id}
-            prediction={reportPrediction.id}
-            onRestart={restartAdventure}
-            onBackToMissions={() => setStage("selection")}
-          />
-        )}
-      </div>
-
-      <footer className="site-footer"><span><Radio aria-hidden="true" /> A STORY ABOUT THE MACHINES WE LEAVE BEHIND.</span><span>MADE FOR CURIOUS MINDS <Star aria-hidden="true" /></span><a className="footer-top-link" href="https://www.jpl.nasa.gov/missions/ingenuity/" target="_blank" rel="noreferrer" aria-label="Visit NASA's Ingenuity mission page"><ArrowUpRight aria-hidden="true" /></a></footer>
-    </main>
-  )
+  return <main className="adventure-shell"><div className="ambient-stars" aria-hidden="true" /><header className="site-header"><button className="brand" type="button" onClick={restartAdventure} aria-label="Forgotten, Not Gone, restart adventure"><span className="brand-mark"><Sparkles aria-hidden="true" /></span><span className="brand-wordmark">forgotten,<br /><b>not gone.</b></span></button><div className="header-transmission"><span className="transmission-dot" /> SPACE EXPLORER PROGRAM <i>/</i> ARCHIVE 001</div><div className="header-mission"><Compass aria-hidden="true" /><span>{mission ? "MISSION" : "ARCHIVE"} <b>{mission?.number ?? "00"}</b></span><span className="header-planet">{mission?.planet.toUpperCase() ?? "MULTI-WORLD"}</span></div></header><nav className="stage-progress" aria-label="Adventure progress"><ol>{stageNames.map((name, index) => <li key={name} className={index < activeIndex ? "is-complete" : index === activeIndex ? "is-current" : ""} aria-current={index === activeIndex ? "step" : undefined}><span className="progress-number">{index < activeIndex ? <span aria-hidden="true">✓</span> : `0${index + 1}`}</span><span className="progress-name">{name}</span></li>)}</ol><span className="progress-summary">STAGE <b>0{activeIndex + 1}</b> / 09</span></nav><div className="stage-content" key={`${stage}-${selectedMission ?? "none"}`}>{stage === "welcome" && <WelcomeScreen nickname={nickname} age={age} interest={interest} onNicknameChange={setNickname} onAgeChange={setAge} onInterestChange={setInterest} onLaunch={() => { setNickname((current) => current.trim()); setStage("selection") }} />}{stage === "selection" && interest && <MissionSelectionScreen nickname={nickname} ageBand={ageBand} interest={interest} completedMissions={completedMissions} selectedMission={selectedMission} onSelect={startMission} onBack={() => setStage("welcome")} />}{stage === "arrival" && mission && interest && <ArrivalScreen mission={mission} interest={interest} ageBand={ageBand} onContinue={() => setStage("investigation")} onBack={exploreAnother} />}{stage === "investigation" && mission && interest && <InvestigationScreen mission={mission} interest={interest} ageBand={ageBand} discovered={discovered} selected={selectedComponent} onSelect={(id) => { setSelectedComponent(id); setDiscovered((current) => current.includes(id) ? current : [...current, id]) }} onContinue={beginChallenge} onBack={() => setStage("arrival")} />}{stage === "challenge" && mission && interest && <ChallengeScreen mission={mission} interest={interest} ageBand={ageBand} selectedChoice={challengeChoice} controls={controls} tested={challengeTested} onControl={(name, value) => setControls((current) => ({ ...current, [name]: value }))} onChoose={setChallengeChoice} onTest={recordChallenge} onContinue={() => setStage("history")} onBack={() => setStage("investigation")} />}{stage === "history" && mission && <HistoryScreen mission={mission} choice={challengeChoice} onContinue={() => setStage("transmission")} onBack={() => setStage("challenge")} />}{stage === "transmission" && mission && <TransmissionScreen mission={mission} onContinue={() => setStage("legacy")} onBack={() => setStage("history")} />}{stage === "legacy" && mission && <LegacyScreen mission={mission} prediction={prediction} onPrediction={setPrediction} onContinue={finishMission} onBack={() => setStage("transmission")} />}{stage === "report" && mission && interest && <MissionReportScreen mission={mission} nickname={nickname} ageBand={ageBand} interest={interest} discovered={discovered} choice={challengeChoice} prediction={prediction} challengeSummary={mission.challengeChoices.find((choice) => choice.id === challengeChoice)?.consequence ?? "You recorded an observation."} onReplay={replayMission} onExploreAnother={exploreAnother} />}</div><footer className="site-footer"><span><Radio aria-hidden="true" /> {profile ? `${profile.skill.toUpperCase()} · ${mission?.shortTitle.toUpperCase() ?? "ARCHIVE"}` : "A STORY ABOUT THE MACHINES WE LEAVE BEHIND."}</span><span>MADE FOR CURIOUS MINDS <Star aria-hidden="true" /></span><a className="footer-top-link" href="https://science.nasa.gov/" target="_blank" rel="noreferrer" aria-label="Visit NASA Science"><Star aria-hidden="true" /></a></footer></main>
 }
