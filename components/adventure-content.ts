@@ -2,7 +2,7 @@ export const EXPLORER_INTERESTS = ["Engineering", "Space Mysteries", "Science"] 
 
 export type ExplorerInterest = (typeof EXPLORER_INTERESTS)[number]
 export type MissionId = "ingenuity" | "apollo-15" | "sojourner" | "insight"
-export type AgeBand = "younger" | "older" | "unknown"
+export type AgeBand = "caregiver" | "younger" | "teen" | "adult" | "unknown"
 
 export type MissionComponent = {
   id: string
@@ -51,6 +51,8 @@ export type MissionRecord = {
   whatIfPrompt: string
   whatIfChoices: string[]
   discoveries: string[]
+  diagramCaption: string
+  hotspots: { id: string; x: number; y: number }[]
 }
 
 export const INTEREST_PROFILES: Record<ExplorerInterest, { lens: string; arrival: string; clue: string; skill: string }> = {
@@ -115,6 +117,8 @@ export const MISSION_DATA: MissionRecord[] = [
     whatIfPrompt: "If Ingenuity had never flown, what possibility might have stayed untested?",
     whatIfChoices: ["Aerial scouting might have stayed an idea instead of a proven demonstration.", "Rovers would still explore, but mission planners would have one less view from above.", "We might have needed longer to learn how autonomous flight behaves on another world."],
     discoveries: ["Thin atmospheres change familiar engineering rules.", "Autonomy matters when radio signals cannot steer every move.", "A technology demonstration can change the design of future missions."],
+    diagramCaption: "A labeled educational diagram of Ingenuity. The actual NASA mission image is linked in the archive, but its tiny components are not used as clickable evidence.",
+    hotspots: [{ id: "rotors", x: 50, y: 23 }, { id: "solar", x: 50, y: 42 }, { id: "navigation", x: 50, y: 61 }],
   },
   {
     id: "apollo-15",
@@ -156,6 +160,8 @@ export const MISSION_DATA: MissionRecord[] = [
     whatIfPrompt: "Without the rover, what might the Apollo 15 crew have had less of?",
     whatIfChoices: ["Time and energy to reach several geologic sites.", "A way to compare samples from farther apart.", "A vehicle test showing how humans could travel across another world."],
     discoveries: ["The Lunar Roving Vehicle extended human exploration on the Moon.", "Geology gets stronger when samples can be compared across a landscape.", "Leaving hardware behind can still leave a scientific trail."],
+    diagramCaption: "A labeled educational diagram of the Lunar Roving Vehicle. This diagram makes the wheel, navigation, and drive locations explicit instead of guessing from a historical photograph.",
+    hotspots: [{ id: "wheels", x: 30, y: 71 }, { id: "navigation", x: 50, y: 38 }, { id: "power", x: 68, y: 58 }],
   },
   {
     id: "sojourner",
@@ -197,6 +203,8 @@ export const MISSION_DATA: MissionRecord[] = [
     whatIfPrompt: "Without Sojourner, what might have taken longer to learn?",
     whatIfChoices: ["How to drive a small rover across another planet.", "How a lander and rover can work together as one mission.", "How close-up rock measurements can change a landscape story."],
     discoveries: ["A small rover can test a whole new way to explore.", "Images are both navigation tools and scientific evidence.", "Rocks help scientists compare worlds, not just photograph them."],
+    diagramCaption: "A labeled educational diagram of Sojourner. Markers describe equipment locations in the diagram, not an ambiguous Mars landscape photo.",
+    hotspots: [{ id: "wheels", x: 33, y: 70 }, { id: "cameras", x: 61, y: 39 }, { id: "alpha", x: 49, y: 56 }],
   },
   {
     id: "insight",
@@ -238,6 +246,8 @@ export const MISSION_DATA: MissionRecord[] = [
     whatIfPrompt: "Without InSight, what kind of evidence about Mars would be harder to collect?",
     whatIfChoices: ["Direct seismic clues about the planet's deep interior.", "A long record of how Mars responds to impacts and quakes.", "A way to compare Mars' inner structure with Earth's."],
     discoveries: ["Signals can reveal places a camera cannot see.", "Scientists separate evidence from noise by comparing patterns.", "A mission's final transmission can still begin new research."],
+    diagramCaption: "A labeled educational diagram of InSight. The scientific clues are highlighted on a diagram because the selected landscape image does not show every instrument clearly.",
+    hotspots: [{ id: "seismometer", x: 38, y: 64 }, { id: "solar", x: 69, y: 48 }, { id: "heat", x: 51, y: 75 }],
   },
 ]
 
