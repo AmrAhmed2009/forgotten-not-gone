@@ -118,7 +118,7 @@ export default function SpaceAdventure() {
           />
         )}
         {stage === "selection" && interest && (
-          <MissionSelectionScreen nickname={nickname} interest={interest} onInvestigate={beginMission} />
+          <MissionSelectionScreen nickname={nickname} interest={interest} onInvestigate={beginMission} onBack={() => setStage("welcome")} />
         )}
         {stage === "discovery" && (
           <DiscoveryScreen
@@ -126,6 +126,7 @@ export default function SpaceAdventure() {
             selected={selectedPart}
             onSelect={selectPart}
             onContinue={() => { setEngineeringChoice(null); setReadyToDecide(false); setStage("engineering") }}
+            onBack={() => setStage("selection")}
           />
         )}
         {stage === "engineering" && (
@@ -135,10 +136,11 @@ export default function SpaceAdventure() {
             onReady={() => setReadyToDecide(true)}
             onChoose={setEngineeringChoice}
             onContinue={() => { setPrediction(null); setStage("legacy") }}
+            onBack={() => setStage("discovery")}
           />
         )}
         {stage === "legacy" && (
-          <LegacyScreen prediction={prediction} onPrediction={setPrediction} onContinue={() => setStage("report")} />
+          <LegacyScreen prediction={prediction} onPrediction={setPrediction} onContinue={() => setStage("report")} onBack={() => setStage("engineering")} />
         )}
         {stage === "report" && reportChoice && reportPrediction && (
           <MissionReportScreen

@@ -1,6 +1,6 @@
 "use client"
 
-import { ArrowRight, Atom, Award, Check, ChevronRight, CircleHelp, Cpu, ExternalLink, Globe2, Heart, Lightbulb, LockKeyhole, Rocket, RotateCcw, ScanLine, Sparkles, Star, Telescope, Wind } from "lucide-react"
+import { ArrowLeft, ArrowRight, Atom, Award, Check, ChevronRight, CircleHelp, Cpu, ExternalLink, Globe2, Heart, Lightbulb, LockKeyhole, Rocket, RotateCcw, ScanLine, Sparkles, Star, Telescope, Wind } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
 import type { FormEvent } from "react"
 import { Button } from "@/components/ui/button"
@@ -111,10 +111,12 @@ export function MissionSelectionScreen({
   nickname,
   interest,
   onInvestigate,
+  onBack,
 }: {
   nickname: string
   interest: ExplorerInterest
   onInvestigate: () => void
+  onBack: () => void
 }) {
   const explorer = nickname.trim() || "Explorer"
 
@@ -143,7 +145,10 @@ export function MissionSelectionScreen({
           <div className="mission-card-action disabled-action">LOCKED FOR NOW <LockKeyhole aria-hidden="true" /></div>
         </article>
       </div>
-      <p className="mission-note"><Sparkles aria-hidden="true" /> More mysteries are still out there. This is your first one.</p>
+      <div className="stage-navigation stage-navigation-start">
+        <Button className="quiet-button" variant="outline" type="button" onClick={onBack}><ArrowLeft data-icon="inline-start" aria-hidden="true" /> BACK TO PROFILE</Button>
+        <p className="mission-note"><Sparkles aria-hidden="true" /> More mysteries are still out there. This is your first one.</p>
+      </div>
     </section>
   )
 }
@@ -153,11 +158,13 @@ export function DiscoveryScreen({
   selected,
   onSelect,
   onContinue,
+  onBack,
 }: {
   discovered: MachinePartId[]
   selected: MachinePartId | null
   onSelect: (part: MachinePartId) => void
   onContinue: () => void
+  onBack: () => void
 }) {
   const activePart = INGENUITY_PARTS.find((part) => part.id === selected)
   const allDiscovered = discovered.length === INGENUITY_PARTS.length
@@ -195,7 +202,7 @@ export function DiscoveryScreen({
         </aside>
       </div>
 
-      <div className="stage-action-row"><span className="stage-action-note">{allDiscovered ? "All three parts are in your log. Ready to think like an engineer?" : `${INGENUITY_PARTS.length - discovered.length} more ${INGENUITY_PARTS.length - discovered.length === 1 ? "part" : "parts"} to discover before your challenge.`}</span><Button className="action-button" type="button" disabled={!allDiscovered} onClick={onContinue}>{allDiscovered ? "THINK LIKE AN ENGINEER" : "SCAN ALL 3 PARTS"} {allDiscovered ? <ArrowRight data-icon="inline-end" aria-hidden="true" /> : <LockKeyhole data-icon="inline-start" aria-hidden="true" />}</Button></div>
+      <div className="stage-action-row"><Button className="quiet-button" variant="outline" type="button" onClick={onBack}><ArrowLeft data-icon="inline-start" aria-hidden="true" /> BACK TO MISSIONS</Button><span className="stage-action-note">{allDiscovered ? "All three parts are in your log. Ready to think like an engineer?" : `${INGENUITY_PARTS.length - discovered.length} more ${INGENUITY_PARTS.length - discovered.length === 1 ? "part" : "parts"} to discover before your challenge.`}</span><Button className="action-button" type="button" disabled={!allDiscovered} onClick={onContinue}>{allDiscovered ? "THINK LIKE AN ENGINEER" : "SCAN ALL 3 PARTS"} {allDiscovered ? <ArrowRight data-icon="inline-end" aria-hidden="true" /> : <LockKeyhole data-icon="inline-start" aria-hidden="true" />}</Button></div>
     </section>
   )
 }
@@ -206,12 +213,14 @@ export function EngineeringScreen({
   onReady,
   onChoose,
   onContinue,
+  onBack,
 }: {
   ready: boolean
   choice: EngineeringChoiceId | null
   onReady: () => void
   onChoose: (choice: EngineeringChoiceId) => void
   onContinue: () => void
+  onBack: () => void
 }) {
   const selectedChoice = ENGINEERING_CHOICES.find((option) => option.id === choice)
 
@@ -226,12 +235,12 @@ export function EngineeringScreen({
       {!ready ? (
         <div className="think-card">
           <div className="think-art" aria-hidden="true"><div className="air-ring ring-one" /><div className="air-ring ring-two" /><Wind /><span>THIN AIR</span></div>
-          <div className="think-copy"><span className="section-kicker">YOUR DESIGN CHALLENGE</span><h2>Take a moment to picture it.</h2><p>Imagine a tiny helicopter above the red dust. What kind of rotors could push against so little air?</p><Button className="action-button" type="button" onClick={onReady}>I&apos;M READY TO DECIDE <ArrowRight data-icon="inline-end" aria-hidden="true" /></Button><span className="no-timer-note"><CircleHelp aria-hidden="true" /> No time limit. Think it through at your own pace.</span></div>
+          <div className="think-copy"><span className="section-kicker">YOUR DESIGN CHALLENGE</span><h2>Take a moment to picture it.</h2><p>Imagine a tiny helicopter above the red dust. What kind of rotors could push against so little air?</p><Button className="action-button" type="button" onClick={onReady}>I&apos;M READY TO DECIDE <ArrowRight data-icon="inline-end" aria-hidden="true" /></Button><Button className="quiet-button" variant="outline" type="button" onClick={onBack}><ArrowLeft data-icon="inline-start" aria-hidden="true" /> BACK TO DISCOVERY</Button><span className="no-timer-note"><CircleHelp aria-hidden="true" /> No time limit. Think it through at your own pace.</span></div>
         </div>
       ) : (
         <div className="engineering-work">
           <div className="choice-panel">
-            <div className="choice-panel-heading"><div><span className="section-kicker">EDUCATIONAL SIMULATION</span><h2>Choose a rotor design</h2></div><span className="choice-step">A <i>·</i> B <i>·</i> C</span></div>
+              <div className="choice-panel-heading"><div><span className="section-kicker">EDUCATIONAL SIMULATION</span><h2>Choose a rotor design</h2></div><Button className="quiet-button compact-back" variant="outline" type="button" onClick={onBack}><ArrowLeft data-icon="inline-start" aria-hidden="true" /> BACK</Button><span className="choice-step">A <i>·</i> B <i>·</i> C</span></div>
             <fieldset className="choice-list">
               <legend className="sr-only">Pick an engineering design</legend>
               {ENGINEERING_CHOICES.map((option, index) => (
@@ -267,10 +276,12 @@ export function LegacyScreen({
   prediction,
   onPrediction,
   onContinue,
+  onBack,
 }: {
   prediction: FuturePredictionId | null
   onPrediction: (prediction: FuturePredictionId) => void
   onContinue: () => void
+  onBack: () => void
 }) {
   const selectedPrediction = FUTURE_PREDICTIONS.find((option) => option.id === prediction)
 
@@ -294,7 +305,7 @@ export function LegacyScreen({
 
         {selectedPrediction && <div className="legacy-reveal" role="status"><span className="reveal-icon"><Sparkles aria-hidden="true" /></span><div><span className="section-kicker">WHAT INGENUITY ACTUALLY SHOWED</span><p>That future is a possibility, not a fact. What we know: Ingenuity made the first powered, controlled flights on another planet and showed how aerial scouts could help future missions explore from above.</p></div></div>}
 
-        <div className="legacy-bottom"><a className="nasa-link" href="https://www.jpl.nasa.gov/missions/ingenuity/" target="_blank" rel="noreferrer">VISIT NASA&apos;S INGENUITY MISSION PAGE <ExternalLink aria-hidden="true" /></a>{selectedPrediction && <Button className="action-button" type="button" onClick={onContinue}>BUILD MY MISSION REPORT <ArrowRight data-icon="inline-end" aria-hidden="true" /></Button>}</div>
+        <div className="legacy-bottom"><Button className="quiet-button" variant="outline" type="button" onClick={onBack}><ArrowLeft data-icon="inline-start" aria-hidden="true" /> BACK TO ENGINEERING</Button><a className="nasa-link" href="https://www.jpl.nasa.gov/missions/ingenuity/" target="_blank" rel="noreferrer">VISIT NASA&apos;S INGENUITY MISSION PAGE <ExternalLink aria-hidden="true" /></a>{selectedPrediction && <Button className="action-button" type="button" onClick={onContinue}>BUILD MY MISSION REPORT <ArrowRight data-icon="inline-end" aria-hidden="true" /></Button>}</div>
       </div>
     </section>
   )
@@ -336,6 +347,14 @@ export function MissionReportScreen({
         <div className="report-message"><Heart aria-hidden="true" /><p>Mission Complete — You&apos;ve uncovered a forgotten explorer&apos;s legacy!</p></div>
       </article>
 
+      <section className="nasa-sources" aria-labelledby="sources-heading">
+        <div className="sources-heading"><span className="section-kicker">NASA SOURCES</span><h2 id="sources-heading">Keep exploring</h2><p>These official NASA resources helped shape this mission. Forgotten, Not Gone is an independent educational prototype and is not endorsed by NASA.</p></div>
+        <ul className="source-list">
+          <li><a href="https://science.nasa.gov/mission/mars-2020-perseverance/ingenuity-mars-helicopter/" target="_blank" rel="noreferrer">Ingenuity Mars Helicopter <ExternalLink aria-hidden="true" /></a><span>NASA Science</span></li>
+          <li><a href="https://nssdc.gsfc.nasa.gov/nmc/spacecraft/display.action?id=1969-059C" target="_blank" rel="noreferrer">Apollo Lunar Module <ExternalLink aria-hidden="true" /></a><span>NASA NSSDC</span></li>
+          <li><a href="https://nssdc.gsfc.nasa.gov/" target="_blank" rel="noreferrer">Space Science Data Archive <ExternalLink aria-hidden="true" /></a><span>NASA NSSDC</span></li>
+        </ul>
+      </section>
       <div className="report-actions"><Button className="action-button" type="button" onClick={onRestart}><RotateCcw data-icon="inline-start" aria-hidden="true" /> RESTART ADVENTURE</Button><Button className="quiet-button" type="button" variant="outline" onClick={onBackToMissions}>BACK TO MISSION SELECTION <ChevronRight data-icon="inline-end" aria-hidden="true" /></Button></div>
       <p className="report-footer-note"><Star aria-hidden="true" /> The next mystery is still waiting among the stars.</p>
     </section>
