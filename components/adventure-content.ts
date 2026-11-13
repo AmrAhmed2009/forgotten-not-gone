@@ -3,6 +3,8 @@ export const EXPLORER_INTERESTS = ["Engineering", "Space Mysteries", "Science"] 
 export type ExplorerInterest = (typeof EXPLORER_INTERESTS)[number]
 export type MissionId = "ingenuity" | "apollo-15" | "sojourner" | "insight"
 export type AgeBand = "caregiver" | "younger" | "teen" | "adult" | "unknown"
+export type FlightOutcome = "insufficient" | "marginal" | "suitable"
+export type FlightTest = { attempt: number; rotorSize: number; rotorSpeed: number; weight: number; score: number; outcome: FlightOutcome; feedback: string; summary: string }
 
 export type MissionComponent = {
   id: string
