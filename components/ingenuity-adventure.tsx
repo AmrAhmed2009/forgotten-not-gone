@@ -5,7 +5,6 @@ import { Check, ChevronLeft, ExternalLink, Lightbulb, Play, Printer, ScanLine } 
 import { MISSION_DATA, type FlightTest } from "@/components/adventure-content"
 import { CaptainNovaDialogue } from "@/components/captain-nova-dialogue"
 import { MissionInvestigationVisual } from "@/components/mission-investigation-visual"
-import { EvidenceOverlay } from "@/components/nova-dialogue-overlay"
 
 const ingenuity = MISSION_DATA.find((mission) => mission.id === "ingenuity")!
 
@@ -31,8 +30,9 @@ function Action({ children, onClick, disabled = false }: { children: React.React
 export function IngenuityAdventure({ nickname, onReplay, onChooseAnother, onFinished }: { nickname: string; onReplay: () => void; onChooseAnother: () => void; onFinished: () => void }) {
   const explorer = nickname.trim() || "Explorer"
   const [chapter, setChapter] = useState(1)
-  const [openingState, setOpeningState] = useState<"intro" | "search" | "identified" | "investigationChoice" | "choicePreview" | "transition">("intro")
-  const [evidenceOpen, setEvidenceOpen] = useState(false)
+  const [openingState, setOpeningState] = useState<"intro" | "investigate" | "reveal" | "investigationChoice" | "choicePreview" | "transition">("intro")
+  const [guidedZoom, setGuidedZoom] = useState(false)
+  const [showLocationHint, setShowLocationHint] = useState(false)
   const [purpose, setPurpose] = useState<string | null>(null)
   const [journeyViewed, setJourneyViewed] = useState(false)
   const [atmosphereChoice, setAtmosphereChoice] = useState<string | null>(null)
@@ -68,20 +68,40 @@ export function IngenuityAdventure({ nickname, onReplay, onChooseAnother, onFini
 
     {chapter === 1 && <article className="opening-mission" aria-label="Chapter 1: The Last Helicopter">
       <div className="opening-topline"><div><button type="button" className="opening-back" onClick={onChooseAnother}><ChevronLeft aria-hidden="true" /> Mission archive</button><span>MISSION 01 / INGENUITY</span><strong>THE LAST HELICOPTER</strong></div><div><span>CHAPTER 1 OF 10</span><div className="opening-progress"><i /><i /><i /><i /><i /><i /><i /><i /><i /><i /></div></div></div>
-      <div className={`opening-image-shell${openingState === "search" ? " is-scanning" : ""}${openingState === "identified" ? " is-identified" : ""}`}>
-        <img src="/mission-images/ingenuity-clear-2023.jpg" alt="NASA's clear April 16, 2023 photograph of Ingenuity, showing the Mars helicopter's rotors, solar panel, body, and landing legs." />
-        <div className="opening-archive-label">NASA PIA25881 · APRIL 2023</div><div className="scanner-status"><span className="live-indicator" /> {openingState === "search" ? "SCANNER ACTIVE · TAP INGENUITY" : openingState === "identified" ? "IDENTITY CONFIRMED · INGENUITY" : "ARCHIVE VIEW · CLEAR VISUAL"}</div>
-        {openingState === "search" && <button type="button" className="opening-helicopter-hit" onClick={() => setOpeningState("identified")} aria-label="Scan the visible Mars helicopter, Ingenuity"><span>SCAN THE HELICOPTER</span></button>}
-      </div>
-      <p className="opening-caption">Ingenuity photographed by Perseverance on April 16, 2023. Enhanced-color NASA image. <a href="https://science.nasa.gov/photojournal/ingenuity-at-two-years-on-mars/" target="_blank" rel="noreferrer">Official NASA source · PIA25881</a></p>
-      {openingState === "search" && <div className="opening-action-bar"><p>Tap the clearly visible helicopter to scan it. The cyan pulse will confirm what you found.</p><button type="button" className="opening-outline-control" onClick={() => setEvidenceOpen(true)}>See Where Ingenuity Finally Rested</button></div>}
-      {openingState === "investigationChoice" && <section className="opening-choice"><p className="ing-kicker">YOUR FIRST INVESTIGATION CLUE</p><h2>What are you most curious about, Explorer?</h2><p>Your choice will be remembered as your first discovery and will guide the preview before our journey starts.</p><div className="opening-choice-grid">{[["design", "How Ingenuity learned to fly", "Preview: its light body and fast rotors."], ["journey", "How it reached Mars", "Preview: a protected ride beneath Perseverance."], ["flight", "Why its final flight ended", "Preview: a mystery we will investigate carefully later."]].map(([id, title, text]) => <button key={id} type="button" onClick={() => { setPurpose(id); setOpeningState("choicePreview") }}><b>{title}</b><span>{text}</span></button>)}</div></section>}
-      {openingState === "choicePreview" && <section className="opening-choice opening-preview"><p className="ing-kicker">DISCOVERY SAVED · {purpose?.toUpperCase()}</p><h2>{purpose === "design" ? "A lesson in thin air" : purpose === "journey" ? "A passenger on Perseverance" : "A mystery to follow with evidence"}</h2><p>{purpose === "design" ? "Great question. Ingenuity needed a clever design to fly in Mars' thin atmosphere. We will begin with the journey that brought it there." : purpose === "journey" ? "Excellent starting point. Ingenuity reached Mars tucked beneath the Perseverance rover, and our story begins there." : "A thoughtful question. We will save the detailed explanation for later, after gathering the history and the evidence."}</p><div className={`opening-interest-preview preview-${purpose}`} aria-label="Visual preview of your chosen investigation path">{purpose === "design" ? "ROTOR DESIGN PREVIEW" : purpose === "journey" ? "PERSEVERANCE JOURNEY PREVIEW" : "FLIGHT 72 EVIDENCE PREVIEW"}</div></section>}
+
+      {(openingState === "intro" || openingState === "investigate") && <>
+        <div className={`opening-image-shell opening-panorama-shell${guidedZoom ? " is-guided-zoom" : ""}${showLocationHint ? " show-location-hint" : ""}`}>
+          <div className="opening-panorama-stage">
+            <img src="/mission-images/ingenuity-valinor-hills.jpg" alt="NASA's February 21, 2024 natural-color panorama of Valinor Hills, with Ingenuity appearing as a tiny speck just left of center among sand ripples." />
+            {openingState === "investigate" && <button type="button" className="opening-evidence-hotspot" onClick={() => setGuidedZoom(true)} aria-label="Investigate the NASA-verified area containing Ingenuity"><span>{guidedZoom ? "NASA-VERIFIED LOCATION" : "INVESTIGATE THIS AREA"}</span></button>}
+          </div>
+          <div className="opening-archive-label">NASA PIA26237 · FEBRUARY 21, 2024</div>
+          <div className="scanner-status"><span className="live-indicator" /> {guidedZoom ? "GUIDED ZOOM · NASA FIGURE B LOCATION" : "HISTORICAL SCENE · VALINOR HILLS"}</div>
+        </div>
+        <p className="opening-caption">Ingenuity at Valinor Hills, photographed by Perseverance from about 415 meters away on February 21, 2024. <a href="https://science.nasa.gov/photojournal/ingenuity-at-valinor-hills/" target="_blank" rel="noreferrer">Official NASA source · PIA26237</a></p>
+      </>}
+
+      {openingState === "investigate" && <div className="opening-action-bar">
+        <div><p>{guidedZoom ? "The guided view is centered on the helicopter location documented in NASA's official Figure B." : "Look just left of center among the sand ripples. Choose the evidence area, or use the guide—no pixel-perfect tap is required."}</p>{guidedZoom && <figure className="opening-figure-b"><img src="/mission-images/ingenuity-valinor-figure-b.jpg" alt="NASA Figure B close view confirming Ingenuity's location in the Valinor Hills panorama" /><figcaption>NASA Figure B · location confirmation</figcaption></figure>}</div>
+        <div className="opening-investigation-controls">{!guidedZoom && <button type="button" className="opening-outline-control" onClick={() => { setShowLocationHint(true); setGuidedZoom(true) }}>{showLocationHint ? "Hint shown" : "Show NASA's Hint"}</button>}{guidedZoom && <button type="button" className="action-button ing-action" onClick={() => setOpeningState("reveal")}>Identify the Machine</button>}</div>
+      </div>}
+
+      {openingState === "reveal" && <>
+        <div className="opening-image-shell opening-reveal-shell">
+          <img src="/mission-images/ingenuity-clear-2023.jpg" alt="NASA's April 16, 2023 photograph of Ingenuity, taken before its final flight." />
+          <div className="opening-archive-label">NASA PIA25881 · APRIL 16, 2023 · EARLIER IMAGE</div>
+          <div className="scanner-status"><span className="live-indicator" /> IDENTITY CONFIRMED · INGENUITY</div>
+        </div>
+        <p className="opening-caption"><strong>Ingenuity photographed in April 2023, before its final flight.</strong> This is a separate, earlier photograph—not a magnification of the 2024 final-airfield panorama. <a href="https://science.nasa.gov/photojournal/ingenuity-at-two-years-on-mars/" target="_blank" rel="noreferrer">Official NASA source · PIA25881</a></p>
+      </>}
+
+      {openingState === "investigationChoice" && <section className="opening-choice"><p className="ing-kicker">CHOOSE YOUR FIRST QUESTION</p><h2>What do you want to uncover first?</h2><p>Your interest will be saved for this mission. Every path begins with the historical journey in Chapter 2.</p><div className="opening-choice-grid">{[["journey", "How did it reach Mars?", "Preview the protected journey beneath Perseverance."], ["design", "How did engineers make it fly?", "Preview the thin-air engineering challenge."], ["flight", "What happened during its last flight?", "Keep the final-flight mystery open until we gather evidence."]].map(([id, title, text]) => <button key={id} type="button" onClick={() => { setPurpose(id); setOpeningState("choicePreview") }}><b>{title}</b><span>{text}</span></button>)}</div></section>}
+      {openingState === "choicePreview" && <section className="opening-choice opening-preview"><p className="ing-kicker">INTEREST SAVED · {purpose?.toUpperCase()}</p><h2>{purpose === "design" ? "Flight in an almost airless sky" : purpose === "journey" ? "A passenger beneath Perseverance" : "A final flight we will not guess about"}</h2><p>{purpose === "design" ? "Ingenuity's size, mass, and unusual rotors all mattered. First, we need to follow how the helicopter reached Mars." : purpose === "journey" ? "Ingenuity crossed space protected beneath the Perseverance rover. That historical journey is our next chapter." : "We will hold that question without revealing the answer. First, we will gather the mission's history and engineering evidence."}</p><div className={`opening-interest-preview preview-${purpose}`} aria-label="Preview of your chosen investigation interest">{purpose === "design" ? "THIN-AIR ENGINEERING PREVIEW" : purpose === "journey" ? "MARS 2020 JOURNEY PREVIEW" : "FLIGHT 72 MYSTERY SAVED"}</div></section>}
       {openingState === "transition" && <div className="opening-rewind" role="status">REWINDING THE ARCHIVE · EARTH · 2020</div>}
-      {openingState === "intro" && <CaptainNovaDialogue open actionLabel="Meet the Mysterious Helicopter" onAction={() => setOpeningState("search")}><p>Hey, Explorer! I&apos;m Captain Nova. Today, we&apos;re going to investigate a tiny helicopter with an extraordinary story.</p><p>Imagine a machine flying through the thin atmosphere of Mars, far away from Earth. It once achieved something no aircraft had ever done before.</p><p>But eventually, it could no longer fly. Shall we uncover its story?</p></CaptainNovaDialogue>}
-      {openingState === "identified" && <CaptainNovaDialogue open title="You found it!" actionLabel="Begin Ingenuity&apos;s Story" onAction={() => setOpeningState("investigationChoice")}><p>This is Ingenuity, a little helicopter that made history on Mars!</p><p>It completed seventy-two flights before its flying mission came to an end.</p><p>But how could something so small fly on another planet? And what eventually stopped it?</p></CaptainNovaDialogue>}
-      {purpose && openingState === "choicePreview" && <CaptainNovaDialogue open title="A path worth following" actionLabel="Travel Back to 2020" onAction={() => { setOpeningState("transition"); window.setTimeout(() => advance(2), 250) }}><p>{purpose === "design" ? "Your curiosity about flight will help us notice the engineering clues along the way." : purpose === "journey" ? "Your journey question gives us the perfect place to start our story." : "We will keep the final-flight mystery in view, then return to it with the right evidence."}</p></CaptainNovaDialogue>}
-      {evidenceOpen && <EvidenceOverlay onClose={() => setEvidenceOpen(false)} />}
+
+      {openingState === "intro" && <CaptainNovaDialogue open actionLabel="Examine NASA&apos;s Evidence" onAction={() => setOpeningState("investigate")}><p>Explorer, NASA captured this image of a quiet place on Mars. Somewhere in these sand ripples is a machine that once achieved something extraordinary. Shall we investigate?</p></CaptainNovaDialogue>}
+      {openingState === "reveal" && <CaptainNovaDialogue open title="You found it!" actionLabel="Choose Your First Question" onAction={() => setOpeningState("investigationChoice")}><p>You found it! Meet Ingenuity, the little helicopter that flew on Mars. But how did it get here, and why did its flying journey eventually end?</p><p>This clear view is an earlier NASA photograph from April 2023, not a magnification of the distant 2024 scene.</p></CaptainNovaDialogue>}
+      {purpose && openingState === "choicePreview" && <CaptainNovaDialogue open title="Investigation interest saved" actionLabel="Begin Chapter 2" onAction={() => { setOpeningState("transition"); window.setTimeout(() => advance(2), 250) }}><p>{purpose === "design" ? "We will watch for the engineering decisions that made flight possible. First, let's follow Ingenuity's journey to Mars." : purpose === "journey" ? "That is exactly where the historical story begins. Let's travel back to the Mars 2020 launch." : "We will keep the last-flight question open and return to it only after we have the right evidence. First, let's trace the journey to Mars."}</p></CaptainNovaDialogue>}
     </article>}
 
     {chapter === 2 && <article className="ing-scene"><div className="ing-copy wide"><p className="ing-kicker">CHAPTER 2 · THE JOURNEY TO MARS</p><h2>Ingenuity did not travel alone.</h2><p>NASA launched Mars 2020 on July 30, 2020. Ingenuity rode beneath the Perseverance rover, protected by a debris shield, through cruise, landing, and early surface operations. Perseverance landed at Jezero Crater on February 18, 2021.</p>{!journeyViewed ? <Action onClick={() => setJourneyViewed(true)}>See How Ingenuity Reached Mars</Action> : <div className="ing-timeline"><span>EARTH · JUL 30, 2020<br /><b>Launch with Perseverance</b></span><span>SPACE · 2020–21<br /><b>Attached beneath the rover</b></span><span>JEZERO · FEB 18, 2021<br /><b>Landing on Mars</b></span><span>SURFACE · APR 3, 2021<br /><b>Deployment for flight tests</b></span></div>}<p className="ing-source">Historical detail: NASA Science and the Ingenuity landing press kit.</p><Action onClick={() => advance(3)} disabled={!journeyViewed}>Investigate the Flight Challenge</Action></div><NovaNote>NASA did not send Ingenuity to drive across Mars or collect rocks. It was a daring engineering question: could a helicopter fly where there is almost no air?</NovaNote></article>}
@@ -111,18 +131,18 @@ export function IngenuityAdventure({ nickname, onReplay, onChooseAnother, onFini
     <style jsx>{`
       .ing-journey:has(.opening-mission) { width: 100%; margin: 0; }
       .opening-mission { min-height: calc(100dvh - 76px); padding: 18px clamp(18px, 5vw, 72px) 28px; overflow: visible; }
-      .opening-image-shell { display: grid; min-height: clamp(300px, 57vh, 590px); aspect-ratio: auto; cursor: default; }
-      .opening-image-shell > img { width: 100%; height: 100%; object-fit: contain; }
-      .opening-image-shell.is-scanning { cursor: crosshair; }
-      .opening-helicopter-hit { inset: auto; top: 50%; left: 50%; width: min(46vw, 420px); height: min(54vw, 490px); max-height: 75%; transform: translate(-50%, -50%); }
+      .opening-image-shell { display: grid; aspect-ratio: auto; cursor: default; }
+      .opening-panorama-shell { min-height: clamp(240px, 38vw, 440px); }
+      .opening-reveal-shell { min-height: clamp(300px, 57vh, 590px); }
+      .opening-reveal-shell > img { width: 100%; height: 100%; object-fit: contain; }
       .opening-action-bar, .opening-choice, .opening-objectives { display: flex; }
       .opening-choice, .opening-objectives { display: block; }
       .opening-caption { position: relative; z-index: 1; width: min(1200px, 100%); margin: -4px auto 0; }
       @media (max-width: 700px) {
         .opening-mission { min-height: auto; }
-        .opening-image-shell { min-height: 310px; }
-        .opening-image-shell > img { height: 310px; }
-        .opening-helicopter-hit { width: 74vw; height: 62vw; }
+        .opening-panorama-shell { min-height: 210px; }
+        .opening-reveal-shell { min-height: 280px; }
+        .opening-reveal-shell > img { height: 280px; }
       }
     `}</style>
   </section>
