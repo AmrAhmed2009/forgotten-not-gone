@@ -1,8 +1,9 @@
 "use client"
 
 import { ArrowLeft, ArrowRight, Atom, Check, CircleHelp, Cpu, ExternalLink, Gauge, ImageIcon, Lightbulb, MapPin, Printer, Radio, Rocket, RotateCcw, Sparkles, Star, Telescope, Wind } from "lucide-react"
-import { useEffect, useMemo, useState, type FormEvent } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { Button } from "@/components/ui/button"
+import { AnimatedStepper, Step } from "@/components/animated-stepper"
 import { MissionArchive } from "@/components/mission-archive"
 import { MissionInvestigationVisual } from "@/components/mission-investigation-visual"
 import { INTEREST_PROFILES, MISSION_DATA, type AgeBand, type ExplorerInterest, type FlightOutcome, type FlightTest, type MissionId, type MissionRecord } from "@/components/adventure-content"
@@ -12,7 +13,6 @@ const interestIcons = { Engineering: Cpu, "Space Mysteries": Telescope, Science:
 type ProfileProps = { nickname: string; age: string; interest: ExplorerInterest | null; onNicknameChange: (value: string) => void; onAgeChange: (value: string) => void; onInterestChange: (value: ExplorerInterest) => void; onLaunch: () => void }
 
 export function WelcomeScreen({ nickname, age, interest, onNicknameChange, onAgeChange, onInterestChange, onLaunch }: ProfileProps) {
-  function submit(event: FormEvent<HTMLFormElement>) { event.preventDefault(); if (interest) onLaunch() }
   return (
     <section className="welcome-stage cinematic-stage" aria-labelledby="stage-title">
       <div className="welcome-copy">
@@ -22,18 +22,35 @@ export function WelcomeScreen({ nickname, age, interest, onNicknameChange, onAge
         <div className="welcome-note"><Sparkles aria-hidden="true" /><span>Four machines. Seven clues each.<br />You are the explorer.</span></div>
         <div className="welcome-orbit-art" aria-label="Illustration of a rover beacon orbiting a planet" role="img"><span className="orbit-glow" /><span className="orbit-planet" /><span className="orbit-signal" /><span className="orbit-vehicle" /><small>ARCHIVE SIGNAL · ACTIVE</small></div>
       </div>
-      <form className="launch-card" onSubmit={submit}>
+      <div className="launch-card">
         <div className="card-overline"><span className="live-indicator" /> YOUR EXPLORER PROFILE <span className="optional-label">JUST FOR THIS VISIT</span></div>
         <h2>Make the archive yours</h2>
         <p className="launch-intro">Choose what to call yourself and how you want to investigate. Nothing is saved or sent.</p>
-        <div className="profile-fields">
-          <label className="profile-field" htmlFor="explorer-nickname"><span className="field-heading">Explorer nickname <span>OPTIONAL</span></span><input id="explorer-nickname" type="text" value={nickname} maxLength={24} autoComplete="off" placeholder="For example, Nova" onChange={(event) => onNicknameChange(event.target.value)} /><span className="field-hint">A nickname only — no real name needed.</span></label>
-          <label className="profile-field" htmlFor="explorer-age"><span className="field-heading">Age <span>OPTIONAL</span></span><input id="explorer-age" type="number" inputMode="numeric" min="0" max="99" value={age} placeholder="0–99" onChange={(event) => onAgeChange(event.target.value)} aria-describedby="age-hint" /><span id="age-hint" className="field-hint">0–5 uses caregiver guidance; every age can explore.</span></label>
-        </div>
-        <fieldset className="interest-fieldset"><legend>What are you most curious about?</legend><div className="interest-options">{(Object.keys(interestIcons) as ExplorerInterest[]).map((option) => { const Icon = interestIcons[option]; return <label className={`interest-option${interest === option ? " is-selected" : ""}`} key={option}><input type="radio" name="interest" value={option} checked={interest === option} required onChange={() => onInterestChange(option)} /><span className="interest-option-card"><Icon aria-hidden="true" /><span>{option}</span><span className="interest-check"><Check aria-hidden="true" /></span></span></label> })}</div></fieldset>
-        <Button className="action-button launch-button" type="submit" disabled={!interest}>ENTER THE ARCHIVE <ArrowRight data-icon="inline-end" aria-hidden="true" /></Button>
+        <AnimatedStepper
+          backButtonText="Back"
+          canContinue={(step) => step === 1 || interest !== null}
+          completeButtonText="ENTER THE ARCHIVE"
+          nextButtonText="CONTINUE"
+          onFinalStepCompleted={onLaunch}
+        >
+          <Step title="Explorer details">
+            <div className="profile-fields">
+              <label className="profile-field" htmlFor="explorer-nickname"><span className="field-heading">Explorer nickname <span>OPTIONAL</span></span><input id="explorer-nickname" type="text" value={nickname} maxLength={24} autoComplete="off" placeholder="For example, Nova" onChange={(event) => onNicknameChange(event.target.value)} /><span className="field-hint">A nickname only — no real name needed.</span></label>
+              <label className="profile-field" htmlFor="explorer-age"><span className="field-heading">Age <span>OPTIONAL</span></span><input id="explorer-age" type="number" inputMode="numeric" min="0" max="99" value={age} placeholder="0–99" onChange={(event) => onAgeChange(event.target.value)} aria-describedby="age-hint" /><span id="age-hint" className="field-hint">0–5 uses caregiver guidance; every age can explore.</span></label>
+            </div>
+          </Step>
+          <Step title="Choose your lens">
+            <fieldset className="interest-fieldset"><legend>What are you most curious about?</legend><div className="interest-options">{(Object.keys(interestIcons) as ExplorerInterest[]).map((option) => { const Icon = interestIcons[option]; return <label className={`interest-option${interest === option ? " is-selected" : ""}`} key={option}><input type="radio" name="interest" value={option} checked={interest === option} required onChange={() => onInterestChange(option)} /><span className="interest-option-card"><Icon aria-hidden="true" /><span>{option}</span><span className="interest-check"><Check aria-hidden="true" /></span></span></label> })}</div></fieldset>
+          </Step>
+          <Step title="Ready for launch">
+            <div className="rounded-xl border border-primary/20 bg-primary/5 p-4">
+              <p className="m-0 text-sm text-foreground">Your explorer profile is ready{nickname.trim() ? `, ${nickname.trim()}` : ""}.</p>
+              <p className="mb-0 mt-2 text-xs leading-5 text-muted-foreground">Your {interest ?? "selected"} lens will guide the clues you see first. You can return to the archive at any time.</p>
+            </div>
+          </Step>
+        </AnimatedStepper>
         <p className="privacy-note"><Radio aria-hidden="true" /> Your choices stay in this browser tab. They are never saved or sent to a server.</p>
-      </form>
+      </div>
     </section>
   )
 }

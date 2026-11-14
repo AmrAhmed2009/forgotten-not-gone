@@ -556,7 +556,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   .field-hint { font-size: 7px; }
   .interest-fieldset { margin-top: 15px; }
   .interest-fieldset legend { font-size: 9px; }
-  .interest-options { gap: 6px; }
+  .interest-options { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
   .interest-option-card { min-height: 60px; gap: 5px; padding: 8px 6px; font-size: 8px; }
   .interest-option-card > svg { width: 14px; height: 14px; }
   .interest-check { top: 5px; right: 5px; width: 14px; height: 14px; }
