@@ -1,149 +1,246 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
-import { Check, ChevronLeft, ExternalLink, Lightbulb, Play, Printer, ScanLine } from "lucide-react"
-import { MISSION_DATA, type FlightTest } from "@/components/adventure-content"
+import { ChevronLeft, ChevronRight, ExternalLink, Info, RotateCcw, Sparkles } from "lucide-react"
+import { useEffect, useState } from "react"
 import { CaptainNovaDialogue } from "@/components/captain-nova-dialogue"
-import { MissionInvestigationVisual } from "@/components/mission-investigation-visual"
+import { IngenuityScene } from "@/components/ingenuity-scene"
+import type { MachinePartId } from "@/components/adventure-content"
 
-const ingenuity = MISSION_DATA.find((mission) => mission.id === "ingenuity")!
-
-type FinalPath = "rotor" | "reconstruction" | null
-type Experiment = FlightTest & { note: string }
-
-function calculateFlight(size: number, speed: number, mass: number, attempt: number): Experiment {
-  const score = Math.max(0, Math.min(100, Math.round(size * 0.42 + speed * 0.48 - mass * 0.38 + 12)))
-  const outcome = speed < 45 || mass > 68 || score < 50 || size < 45 ? "insufficient" : score >= 66 && size >= 55 && speed >= 60 && mass <= 60 ? "suitable" : "marginal"
-  const feedback = outcome === "suitable" ? "A stable simulated hover: low mass and stronger rotor settings created a useful lift margin." : outcome === "marginal" ? "The model briefly lifts, but it has very little margin. Change one setting and test the trade-off." : speed < 45 ? "The simulated blades are too slow for thin air. Increasing rotor speed is the clearest next test." : mass > 68 ? "The simulated helicopter is carrying too much mass for its lift capacity. Reduce mass or strengthen the rotors." : "There is not enough lift in this simplified model. Try larger or faster rotors, or a lighter craft."
-  return { attempt, rotorSize: size, rotorSpeed: speed, weight: mass, score, outcome, feedback, summary: `${outcome === "suitable" ? "Stable" : outcome === "marginal" ? "Marginal" : "Insufficient"} simulated flight on attempt ${attempt}.`, note: feedback }
+type StoryScene = {
+  eyebrow: string
+  title: string
+  story: string[]
+  nova: string
+  image?: {
+    src: string
+    alt: string
+    caption: string
+    credit: string
+    href: string
+  }
 }
 
-function NovaNote({ children, hint = false }: { children: React.ReactNode; hint?: boolean }) {
-  const [open, setOpen] = useState(false)
-  return <><button type="button" className="ing-nova-trigger" onClick={() => setOpen(true)}><Lightbulb aria-hidden="true" /> {hint ? "Ask for Captain Nova&apos;s hint" : "Ask Captain Nova"}</button><CaptainNovaDialogue open={open} onOpenChange={setOpen} actionLabel="Continue investigating" onAction={() => setOpen(false)} dismissible>{children}</CaptainNovaDialogue></>
-}
+const storyScenes: StoryScene[] = [
+  {
+    eyebrow: "Scene 1 · A question in thin air",
+    title: "Could a helicopter fly where the air is almost gone?",
+    story: [
+      "NASA built Ingenuity to answer one daring question: can a small aircraft make a controlled flight on Mars?",
+      "Near the ground, Mars has only about 1% as much atmosphere as Earth. That gives helicopter blades very little air to push against.",
+    ],
+    nova: "A helicopter on Mars sounds impossible at first. That is exactly why NASA tried it.",
+    image: {
+      src: "/mission-images/ingenuity-deployed-2021.jpg",
+      alt: "NASA's Ingenuity Mars Helicopter standing on the surface of Mars after deployment.",
+      caption: "Ingenuity waited on Mars for its first chance to test a completely new kind of flight.",
+      credit: "NASA/JPL-Caltech · Mars 2020",
+      href: "https://science.nasa.gov/mission/mars-2020-perseverance/",
+    },
+  },
+  {
+    eyebrow: "Scene 2 · A tiny passenger",
+    title: "Ingenuity crossed space beneath a rover.",
+    story: [
+      "On July 30, 2020, Ingenuity launched from Earth tucked underneath NASA's Perseverance rover, behind a protective shield.",
+      "Perseverance landed in Jezero Crater on February 18, 2021. On April 3, the rover carefully set the helicopter down on Martian ground.",
+    ],
+    nova: "Imagine riding all the way to Mars underneath a rover. Ingenuity needed Perseverance to reach its runway.",
+  },
+  {
+    eyebrow: "Scene 3 · Built for a strange sky",
+    title: "Every part had a job.",
+    story: [
+      "Ingenuity was light, solar-powered, and topped with two pairs of carbon-fiber blades that spun in opposite directions. Its rotors were about 4 feet, or 1.2 meters, across.",
+      "Its camera and onboard computer helped it steer itself. Signals from Earth take too long for a person to fly it with a joystick in real time.",
+    ],
+    nova: "Tap one of the glowing parts if you want a closer look. You never need to solve this to keep reading.",
+  },
+  {
+    eyebrow: "Scene 4 · A first for another world",
+    title: "Then the little helicopter lifted off.",
+    story: [
+      "On April 19, 2021, Ingenuity climbed about 3 meters, hovered, turned, and landed. The whole first flight lasted 39.1 seconds.",
+      "It became the first aircraft to achieve powered, controlled flight on another planet. For a moment, Mars had a helicopter in its sky.",
+    ],
+    nova: "This was more than a short hop. It proved that powered flight could work on another world.",
+    image: {
+      src: "/mission-images/ingenuity.jpg",
+      alt: "Ingenuity Mars Helicopter on the Martian surface, photographed by the Perseverance rover.",
+      caption: "Perseverance photographed Ingenuity after its historic first flight on April 19, 2021.",
+      credit: "NASA/JPL-Caltech/ASU/MSSS · First-flight image",
+      href: "https://science.nasa.gov/photojournal/ingenuitys-first-flight-recorded-by-mastcam-z/",
+    },
+  },
+  {
+    eyebrow: "Scene 5 · Five became seventy-two",
+    title: "A small test became a long adventure.",
+    story: [
+      "Ingenuity was planned for up to five flights over 30 days. It did so well that NASA kept flying it for nearly three years.",
+      "By scouting terrain and trying new routes, it helped engineers learn how an aerial explorer could support a rover. In all, Ingenuity completed 72 flights.",
+    ],
+    nova: "Seventy-two flights! Ingenuity turned one brave experiment into a whole new view of Mars.",
+    image: {
+      src: "/mission-images/ingenuity-clear-2023.jpg",
+      alt: "NASA photograph of Ingenuity on Mars in April 2023, showing its solar panel and rotor blades.",
+      caption: "After two years on Mars, dust covered Ingenuity's solar panel and rotors—but it was still flying.",
+      credit: "NASA/JPL-Caltech/ASU/MSSS · PIA25881",
+      href: "https://science.nasa.gov/photojournal/ingenuity-at-two-years-on-mars/",
+    },
+  },
+  {
+    eyebrow: "Scene 6 · The last landing",
+    title: "Flight 72 ended differently.",
+    story: [
+      "On January 18, 2024, Ingenuity rose for its 72nd flight. During the landing, its navigation system had trouble tracking features in a field of nearly featureless sand ripples.",
+      "The helicopter landed hard. All four rotor blades were damaged, so Ingenuity could not fly again. NASA ended flight operations one week later, on January 25.",
+    ],
+    nova: "It is okay to feel sad about the final landing. Even in that hard moment, engineers learned from the evidence.",
+    image: {
+      src: "/mission-images/ingenuity-valinor-figure-b.jpg",
+      alt: "NASA close view locating Ingenuity in the sand ripples at Valinor Hills after its final flight.",
+      caption: "NASA's Figure B helps locate Ingenuity at Valinor Hills, the site of its final flight.",
+      credit: "NASA/JPL-Caltech/ASU/MSSS · PIA26237 Figure B",
+      href: "https://science.nasa.gov/photojournal/ingenuity-at-valinor-hills/",
+    },
+  },
+  {
+    eyebrow: "Scene 7 · A lasting lift",
+    title: "Its story is still helping the next explorers.",
+    story: [
+      "Ingenuity showed that flying in the thin atmosphere of Mars is possible. Its flights gave engineers real lessons about autonomous navigation, aerial scouting, and spacecraft design.",
+      "It remains at Valinor Hills, silent but not forgotten—a small machine that opened the sky on another world.",
+    ],
+    nova: "You followed Ingenuity from one big question to a lasting answer. That is how an experiment becomes a legacy.",
+    image: {
+      src: "/mission-images/ingenuity-valinor-hills.jpg",
+      alt: "NASA panorama of Valinor Hills on Mars, with Ingenuity visible as a small speck among the sand ripples.",
+      caption: "Ingenuity sits just left of center in this February 2024 NASA panorama of Valinor Hills.",
+      credit: "NASA/JPL-Caltech/ASU/MSSS · PIA26237",
+      href: "https://science.nasa.gov/photojournal/ingenuity-at-valinor-hills/",
+    },
+  },
+]
 
-function Action({ children, onClick, disabled = false }: { children: React.ReactNode; onClick: () => void; disabled?: boolean }) {
-  return <button type="button" className="action-button ing-action" onClick={onClick} disabled={disabled}>{children}</button>
+function StoryPhoto({ image, expanded, onToggle }: { image: NonNullable<StoryScene["image"]>; expanded: boolean; onToggle: () => void }) {
+  return (
+    <figure className={`story-photo${expanded ? " is-expanded" : ""}`}>
+      <button type="button" className="story-photo-button" onClick={onToggle} aria-expanded={expanded}>
+        <img src={image.src} alt={image.alt} />
+        <span className="story-photo-hint"><Info aria-hidden="true" /> {expanded ? "Hide photo note" : "Explore this NASA image"}</span>
+      </button>
+      <figcaption>
+        <p>{image.caption}</p>
+        {expanded && <div className="story-photo-note">This is a real NASA image from the story. Look closely: the picture is scientific evidence, not just decoration.</div>}
+        <a href={image.href} target="_blank" rel="noreferrer">{image.credit} <ExternalLink aria-hidden="true" /></a>
+      </figcaption>
+    </figure>
+  )
 }
 
 export function IngenuityAdventure({ nickname, onReplay, onChooseAnother, onFinished }: { nickname: string; onReplay: () => void; onChooseAnother: () => void; onFinished: () => void }) {
   const explorer = nickname.trim() || "Explorer"
-  const [chapter, setChapter] = useState(1)
-  const [openingState, setOpeningState] = useState<"intro" | "investigate" | "reveal" | "investigationChoice" | "choicePreview" | "transition">("intro")
-  const [guidedZoom, setGuidedZoom] = useState(false)
-  const [showLocationHint, setShowLocationHint] = useState(false)
-  const [purpose, setPurpose] = useState<string | null>(null)
-  const [journeyViewed, setJourneyViewed] = useState(false)
-  const [atmosphereChoice, setAtmosphereChoice] = useState<string | null>(null)
-  const [discovered, setDiscovered] = useState<string[]>([])
-  const [selectedComponent, setSelectedComponent] = useState<string | null>(null)
-  const [size, setSize] = useState(72)
-  const [speed, setSpeed] = useState(78)
-  const [mass, setMass] = useState(28)
-  const [experiments, setExperiments] = useState<Experiment[]>([])
-  const [showNasaSolution, setShowNasaSolution] = useState(false)
-  const [firstFlightViewed, setFirstFlightViewed] = useState(false)
-  const [selectedMilestone, setSelectedMilestone] = useState<string | null>(null)
-  const [finalPath, setFinalPath] = useState<FinalPath>(null)
-  const [finalPrediction, setFinalPrediction] = useState<string | null>(null)
-  const [findingsViewed, setFindingsViewed] = useState(false)
-  const [legacyThought, setLegacyThought] = useState<string | null>(null)
+  const [sceneIndex, setSceneIndex] = useState(0)
+  const [expandedPhoto, setExpandedPhoto] = useState(false)
+  const [selectedPart, setSelectedPart] = useState<MachinePartId | null>(null)
+  const [discoveredParts, setDiscoveredParts] = useState<MachinePartId[]>([])
+  const [prediction, setPrediction] = useState<string | null>(null)
+  const [completed, setCompleted] = useState(false)
+  const [showNova, setShowNova] = useState(true)
 
-  useEffect(() => { window.scrollTo({ top: 0, behavior: "smooth" }) }, [chapter])
+  const scene = storyScenes[sceneIndex]
+  const isFinalScene = sceneIndex === storyScenes.length - 1
 
-  const preview = useMemo(() => calculateFlight(size, speed, mass, experiments.length + 1), [size, speed, mass, experiments.length])
-  const allComponents = ingenuity.components.every((component) => discovered.includes(component.id))
-  const canLeaveLab = experiments.some((test) => test.outcome === "suitable") || experiments.length >= 3
-  const activeComponent = ingenuity.components.find((component) => component.id === selectedComponent)
+  useEffect(() => {
+    setExpandedPhoto(false)
+    setShowNova(true)
+    window.scrollTo({ top: 0, behavior: "smooth" })
+  }, [sceneIndex])
 
-  function advance(next: number) { setChapter(next) }
-  function scanComponent(id: string) { setSelectedComponent(id); setDiscovered((current) => current.includes(id) ? current : [...current, id]) }
-  function runExperiment() { setExperiments((current) => [...current, calculateFlight(size, speed, mass, current.length + 1)]) }
+  function choosePart(part: MachinePartId) {
+    setSelectedPart(part)
+    setDiscoveredParts((current) => current.includes(part) ? current : [...current, part])
+  }
 
-  const chapterTitle = ["Silent airfield", "Journey to Mars", "The flight challenge", "Discover the machine", "Mars Flight Laboratory", "A historic lift-off", "Five became seventy-two", "Flight 72", "What Ingenuity left behind", "Explorer report"][chapter - 1]
+  function moveTo(nextIndex: number) {
+    if (nextIndex === storyScenes.length - 1 && !completed) {
+      setCompleted(true)
+      onFinished()
+    }
+    setSceneIndex(nextIndex)
+  }
 
-  return <section className="ing-journey" aria-labelledby="ingenuity-title">
-    <header className="ing-progress"><div><span>MISSION 01 · INGENUITY</span><h1 id="ingenuity-title">{chapterTitle}</h1></div><ol aria-label="Ingenuity mission chapters">{Array.from({ length: 10 }, (_, index) => <li key={index} className={index + 1 === chapter ? "is-current" : index + 1 < chapter ? "is-done" : ""} aria-current={index + 1 === chapter ? "step" : undefined}>{index + 1}</li>)}</ol></header>
+  function restart() {
+    setSceneIndex(0)
+    setExpandedPhoto(false)
+    setSelectedPart(null)
+    setDiscoveredParts([])
+    setPrediction(null)
+    setCompleted(false)
+    onReplay()
+  }
 
-    {chapter === 1 && <article className="opening-mission" aria-label="Chapter 1: The Last Helicopter">
-      <div className="opening-topline"><div><button type="button" className="opening-back" onClick={onChooseAnother}><ChevronLeft aria-hidden="true" /> Mission archive</button><span>MISSION 01 / INGENUITY</span><strong>THE LAST HELICOPTER</strong></div><div><span>CHAPTER 1 OF 10</span><div className="opening-progress"><i /><i /><i /><i /><i /><i /><i /><i /><i /><i /></div></div></div>
-
-      {(openingState === "intro" || openingState === "investigate") && <>
-        <div className={`opening-image-shell opening-panorama-shell${guidedZoom ? " is-guided-zoom" : ""}${showLocationHint ? " show-location-hint" : ""}`}>
-          <div className="opening-panorama-stage">
-            <img src="/mission-images/ingenuity-valinor-hills.jpg" alt="NASA's February 21, 2024 natural-color panorama of Valinor Hills, with Ingenuity appearing as a tiny speck just left of center among sand ripples." />
-            {openingState === "investigate" && <button type="button" className="opening-evidence-hotspot" onClick={() => setGuidedZoom(true)} aria-label="Investigate the NASA-verified area containing Ingenuity"><span>{guidedZoom ? "NASA-VERIFIED LOCATION" : "INVESTIGATE THIS AREA"}</span></button>}
-          </div>
-          <div className="opening-archive-label">NASA PIA26237 · FEBRUARY 21, 2024</div>
-          <div className="scanner-status"><span className="live-indicator" /> {guidedZoom ? "GUIDED ZOOM · NASA FIGURE B LOCATION" : "HISTORICAL SCENE · VALINOR HILLS"}</div>
+  return (
+    <section className="storybook" aria-labelledby="ingenuity-story-title">
+      <header className="storybook-header">
+        <button type="button" className="storybook-back-link" onClick={onChooseAnother}><ChevronLeft aria-hidden="true" /> All stories</button>
+        <div>
+          <p>MISSION 01 · STORYBOOK</p>
+          <h1 id="ingenuity-story-title">Ingenuity: The Little Helicopter That Could</h1>
         </div>
-        <p className="opening-caption">Ingenuity at Valinor Hills, photographed by Perseverance from about 415 meters away on February 21, 2024. <a href="https://science.nasa.gov/photojournal/ingenuity-at-valinor-hills/" target="_blank" rel="noreferrer">Official NASA source · PIA26237</a></p>
-      </>}
+        <p className="storybook-count" aria-label={`Scene ${sceneIndex + 1} of ${storyScenes.length}`}>{sceneIndex + 1} / {storyScenes.length}</p>
+      </header>
 
-      {openingState === "investigate" && <div className="opening-action-bar">
-        <div><p>{guidedZoom ? "The guided view is centered on the helicopter location documented in NASA's official Figure B." : "Look just left of center among the sand ripples. Choose the evidence area, or use the guide—no pixel-perfect tap is required."}</p>{guidedZoom && <figure className="opening-figure-b"><img src="/mission-images/ingenuity-valinor-figure-b.jpg" alt="NASA Figure B close view confirming Ingenuity's location in the Valinor Hills panorama" /><figcaption>NASA Figure B · location confirmation</figcaption></figure>}</div>
-        <div className="opening-investigation-controls">{!guidedZoom && <button type="button" className="opening-outline-control" onClick={() => { setShowLocationHint(true); setGuidedZoom(true) }}>{showLocationHint ? "Hint shown" : "Show NASA's Hint"}</button>}{guidedZoom && <button type="button" className="action-button ing-action" onClick={() => setOpeningState("reveal")}>Identify the Machine</button>}</div>
-      </div>}
+      <ol className="storybook-progress" aria-label="Ingenuity story scenes">
+        {storyScenes.map((item, index) => <li key={item.title} className={index === sceneIndex ? "is-current" : index < sceneIndex ? "is-read" : ""} aria-current={index === sceneIndex ? "step" : undefined}><span>{index + 1}</span><em>{item.title}</em></li>)}
+      </ol>
 
-      {openingState === "reveal" && <>
-        <div className="opening-image-shell opening-reveal-shell">
-          <img src="/mission-images/ingenuity-clear-2023.jpg" alt="NASA's April 16, 2023 photograph of Ingenuity, taken before its final flight." />
-          <div className="opening-archive-label">NASA PIA25881 · APRIL 16, 2023 · EARLIER IMAGE</div>
-          <div className="scanner-status"><span className="live-indicator" /> IDENTITY CONFIRMED · INGENUITY</div>
+      <article className="storybook-scene" key={scene.title} aria-live="polite">
+        <div className="storybook-copy">
+          <p className="storybook-eyebrow">{scene.eyebrow}</p>
+          <h2>{scene.title}</h2>
+          {scene.story.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
+
+          {sceneIndex === 0 && <section className="story-interaction" aria-label="Prediction activity"><p><Sparkles aria-hidden="true" /> Before NASA tested it, what do you think mattered most?</p><div><button type="button" className={prediction === "light" ? "is-selected" : ""} onClick={() => setPrediction("light")}>Keeping it light</button><button type="button" className={prediction === "rotors" ? "is-selected" : ""} onClick={() => setPrediction("rotors")}>Fast, wide rotors</button><button type="button" className={prediction === "both" ? "is-selected" : ""} onClick={() => setPrediction("both")}>Both together</button></div>{prediction && <small>Good thinking. Ingenuity needed a lightweight body, fast counter-rotating rotors, power, and autonomous navigation working together.</small>}</section>}
+
+          {sceneIndex === 2 && <section className="story-illustration" aria-label="Explore Ingenuity's components"><IngenuityScene discovered={discoveredParts} selected={selectedPart} onSelect={choosePart} /><p>Tap a glowing part to learn about the rotors, solar panel, or navigation camera. This exploration is optional.</p></section>}
         </div>
-        <p className="opening-caption"><strong>Ingenuity photographed in April 2023, before its final flight.</strong> This is a separate, earlier photograph—not a magnification of the 2024 final-airfield panorama. <a href="https://science.nasa.gov/photojournal/ingenuity-at-two-years-on-mars/" target="_blank" rel="noreferrer">Official NASA source · PIA25881</a></p>
-      </>}
 
-      {openingState === "investigationChoice" && <section className="opening-choice"><p className="ing-kicker">CHOOSE YOUR FIRST QUESTION</p><h2>What do you want to uncover first?</h2><p>Your interest will be saved for this mission. Every path begins with the historical journey in Chapter 2.</p><div className="opening-choice-grid">{[["journey", "How did it reach Mars?", "Preview the protected journey beneath Perseverance."], ["design", "How did engineers make it fly?", "Preview the thin-air engineering challenge."], ["flight", "What happened during its last flight?", "Keep the final-flight mystery open until we gather evidence."]].map(([id, title, text]) => <button key={id} type="button" onClick={() => { setPurpose(id); setOpeningState("choicePreview") }}><b>{title}</b><span>{text}</span></button>)}</div></section>}
-      {openingState === "choicePreview" && <section className="opening-choice opening-preview"><p className="ing-kicker">INTEREST SAVED · {purpose?.toUpperCase()}</p><h2>{purpose === "design" ? "Flight in an almost airless sky" : purpose === "journey" ? "A passenger beneath Perseverance" : "A final flight we will not guess about"}</h2><p>{purpose === "design" ? "Ingenuity's size, mass, and unusual rotors all mattered. First, we need to follow how the helicopter reached Mars." : purpose === "journey" ? "Ingenuity crossed space protected beneath the Perseverance rover. That historical journey is our next chapter." : "We will hold that question without revealing the answer. First, we will gather the mission's history and engineering evidence."}</p><div className={`opening-interest-preview preview-${purpose}`} aria-label="Preview of your chosen investigation interest">{purpose === "design" ? "THIN-AIR ENGINEERING PREVIEW" : purpose === "journey" ? "MARS 2020 JOURNEY PREVIEW" : "FLIGHT 72 MYSTERY SAVED"}</div></section>}
-      {openingState === "transition" && <div className="opening-rewind" role="status">REWINDING THE ARCHIVE · EARTH · 2020</div>}
+        {sceneIndex !== 2 && <div className="storybook-visual">
+          {scene.image ? <StoryPhoto image={scene.image} expanded={expandedPhoto} onToggle={() => setExpandedPhoto((value) => !value)} /> : <figure className="story-space-art"><div className="story-space-art-orbit" /><div className="story-space-art-planet"><span>EARTH</span><i /></div><div className="story-space-art-rover"><b>PERSEVERANCE</b><small>Ingenuity rode below</small></div><figcaption>NASA's Mars 2020 mission carried Ingenuity safely from Earth to Mars.</figcaption></figure>}
+        </div>}
+      </article>
 
-      {openingState === "intro" && <CaptainNovaDialogue open actionLabel="Examine NASA&apos;s Evidence" onAction={() => setOpeningState("investigate")}><p>Explorer, NASA captured this image of a quiet place on Mars. Somewhere in these sand ripples is a machine that once achieved something extraordinary. Shall we investigate?</p></CaptainNovaDialogue>}
-      {openingState === "reveal" && <CaptainNovaDialogue open title="You found it!" actionLabel="Choose Your First Question" onAction={() => setOpeningState("investigationChoice")}><p>You found it! Meet Ingenuity, the little helicopter that flew on Mars. But how did it get here, and why did its flying journey eventually end?</p><p>This clear view is an earlier NASA photograph from April 2023, not a magnification of the distant 2024 scene.</p></CaptainNovaDialogue>}
-      {purpose && openingState === "choicePreview" && <CaptainNovaDialogue open title="Investigation interest saved" actionLabel="Begin Chapter 2" onAction={() => { setOpeningState("transition"); window.setTimeout(() => advance(2), 250) }}><p>{purpose === "design" ? "We will watch for the engineering decisions that made flight possible. First, let's follow Ingenuity's journey to Mars." : purpose === "journey" ? "That is exactly where the historical story begins. Let's travel back to the Mars 2020 launch." : "We will keep the last-flight question open and return to it only after we have the right evidence. First, let's trace the journey to Mars."}</p></CaptainNovaDialogue>}
-    </article>}
+      <CaptainNovaDialogue key={sceneIndex} open={showNova} onOpenChange={setShowNova} title="Captain Nova" actionLabel="Keep reading" onAction={() => setShowNova(false)} dismissible>
+        <p>{scene.nova}</p>
+      </CaptainNovaDialogue>
 
-    {chapter === 2 && <article className="ing-scene"><div className="ing-copy wide"><p className="ing-kicker">CHAPTER 2 · THE JOURNEY TO MARS</p><h2>Ingenuity did not travel alone.</h2><p>NASA launched Mars 2020 on July 30, 2020. Ingenuity rode beneath the Perseverance rover, protected by a debris shield, through cruise, landing, and early surface operations. Perseverance landed at Jezero Crater on February 18, 2021.</p>{!journeyViewed ? <Action onClick={() => setJourneyViewed(true)}>See How Ingenuity Reached Mars</Action> : <div className="ing-timeline"><span>EARTH · JUL 30, 2020<br /><b>Launch with Perseverance</b></span><span>SPACE · 2020–21<br /><b>Attached beneath the rover</b></span><span>JEZERO · FEB 18, 2021<br /><b>Landing on Mars</b></span><span>SURFACE · APR 3, 2021<br /><b>Deployment for flight tests</b></span></div>}<p className="ing-source">Historical detail: NASA Science and the Ingenuity landing press kit.</p><Action onClick={() => advance(3)} disabled={!journeyViewed}>Investigate the Flight Challenge</Action></div><NovaNote>NASA did not send Ingenuity to drive across Mars or collect rocks. It was a daring engineering question: could a helicopter fly where there is almost no air?</NovaNote></article>}
+      <nav className="storybook-nav" aria-label="Story controls">
+        <button type="button" className="storybook-nav-button storybook-nav-secondary" onClick={() => moveTo(Math.max(0, sceneIndex - 1))} disabled={sceneIndex === 0}><ChevronLeft aria-hidden="true" /> Back</button>
+        {isFinalScene ? <button type="button" className="storybook-nav-button" onClick={onChooseAnother}>Explore Another Story <ChevronRight aria-hidden="true" /></button> : <button type="button" className="storybook-nav-button" onClick={() => moveTo(sceneIndex + 1)}>Next <ChevronRight aria-hidden="true" /></button>}
+      </nav>
 
-    {chapter === 3 && <article className="ing-scene"><div className="ing-copy wide"><p className="ing-kicker">CHAPTER 3 · CAN A HELICOPTER FLY ON MARS?</p><h2>Thin air changes every familiar rule.</h2><p>Mars has less than one percent of Earth&apos;s atmospheric density near the surface. Helicopter blades need air to push down, so NASA had to make each bit of air count.</p><p>Which design choices might help? There is more than one useful idea.</p><div className="ing-choice-row">{[["mass", "Reduce the mass"], ["rotors", "Use larger, faster rotors"], ["power", "Store enough power for a flight"]].map(([id, label]) => <button key={id} type="button" className={atmosphereChoice === id ? "is-selected" : ""} onClick={() => setAtmosphereChoice(id)}>{label}</button>)}</div>{atmosphereChoice && <div className="ing-response"><p>{atmosphereChoice === "mass" ? "Yes. Less mass means less lift is needed." : atmosphereChoice === "rotors" ? "Yes. Larger blades and faster rotation can move more of the thin air." : "Yes. Solar power had to recharge batteries for flights and cold Martian nights."}</p><p>The real design joined these choices, rather than depending on one magic answer.</p></div>}<Action onClick={() => advance(4)} disabled={!atmosphereChoice}>Examine Ingenuity&apos;s Design</Action></div><NovaNote>What do you think happened when engineers placed two large rotor systems above such a tiny body? Let&apos;s inspect the evidence before I explain it.</NovaNote></article>}
+      {isFinalScene && <section className="storybook-summary" aria-label="Your Ingenuity story summary"><p className="storybook-eyebrow">{explorer}&apos;s story summary</p><h2>You followed a question all the way to a new sky.</h2><p>Ingenuity traveled to Mars beneath Perseverance, became the first aircraft to fly on another planet, completed 72 flights, and left engineers with a lasting map for future aerial explorers.</p><button type="button" className="storybook-replay" onClick={restart}><RotateCcw aria-hidden="true" /> Read Ingenuity&apos;s story again</button></section>}
 
-    {chapter === 4 && <article className="ing-scene"><div className="ing-copy wide"><p className="ing-kicker">CHAPTER 4 · THE SEVEN-CLUE INVESTIGATION</p><h2>Seven clues to an impossible flight.</h2><p>Scan the original NASA technical diagram. Each cyan marker lines up with an original red annotation point; discover every part before moving to the laboratory.</p></div><div className="ing-investigation"><MissionInvestigationVisual mission={ingenuity} selectedId={selectedComponent} discovered={discovered} onSelect={scanComponent} /><aside className="ing-evidence" aria-live="polite">{activeComponent ? <><span>COMPONENT EVIDENCE · {discovered.indexOf(activeComponent.id) + 1} OF 7</span><h3>{activeComponent.name}</h3><p>{activeComponent.description}</p><p><b>Why it mattered:</b> {activeComponent.observation}</p>{activeComponent.interaction && <p className="ing-mini-activity"><ScanLine aria-hidden="true" /> <b>Try this:</b> {activeComponent.interaction}</p>}<NovaNote>{activeComponent.nova}</NovaNote></> : <><span>SCAN STATUS</span><h3>Equipment discovered: {discovered.length} / 7</h3><p>Start with any cyan scanner marker. The NASA Reference Mode keeps the original annotation panels available whenever you want to compare evidence.</p></>}</aside></div>{allComponents && <div className="ing-bottom"><NovaNote>Seven clues! Now you know how Ingenuity was built to fly, communicate, navigate, and survive on Mars. But knowing the machine is only the beginning. Could you make something like this fly?</NovaNote><Action onClick={() => advance(5)}>Enter the Mars Flight Laboratory</Action></div>}</article>}
-
-    {chapter === 5 && <article className="ing-scene"><div className="ing-copy wide"><p className="ing-kicker">CHAPTER 5 · THINK LIKE A NASA ENGINEER</p><h2>Test a classroom model of lift.</h2><p>This educational simulation uses normalized values, not NASA&apos;s real design specifications. Change a variable, predict an effect, and let the result guide the next attempt.</p></div><div className="ing-lab"><div className="ing-controls">{[["Rotor size", size, setSize, "More blade area can help move scarce air."], ["Rotor speed", speed, setSpeed, "Faster blades can increase lift in this model."], ["Helicopter mass", mass, setMass, "A lower mass improves the lift margin."]].map(([label, value, setter, hint]) => <label key={String(label)}><span><b>{String(label)}</b><output>{Number(value)}</output></span><input type="range" min="10" max="100" value={Number(value)} onChange={(event) => (setter as (value: number) => void)(Number(event.target.value))} /><small>{String(hint)}</small></label>)}<Action onClick={runExperiment}>Test My Design</Action></div><div className={`ing-flight outcome-${preview.outcome}`}><span>SIMULATED FLIGHT · LIFT INDEX {preview.score}</span><div className="ing-heli"><i /><i /><b /><em /></div><p>{experiments.length ? experiments.at(-1)?.note : "Set the controls, then run your first test."}</p></div></div>{experiments.length > 0 && <div className="ing-test-log" role="status"><span>ATTEMPT {experiments.at(-1)?.attempt} · {experiments.at(-1)?.outcome.toUpperCase()}</span><p>{experiments.at(-1)?.feedback}</p>{experiments.length >= 2 && !canLeaveLab && <button type="button" className="ing-text-button" onClick={() => setShowNasaSolution(true)}><Lightbulb aria-hidden="true" /> Request a NASA design hint</button>}</div>}{showNasaSolution && <div className="ing-response"><b>NASA&apos;s solution:</b> Ingenuity combined a lightweight body with two counter-rotating rotor systems and fast-spinning carbon-fiber blades. The real craft also used solar-charged batteries and autonomous navigation.</div>}<div className="ing-bottom">{canLeaveLab && <Action onClick={() => advance(6)}>Discover How NASA Made It Fly</Action>}</div></article>}
-
-    {chapter === 6 && <article className="ing-scene"><div className="ing-copy wide"><p className="ing-kicker">CHAPTER 6 · THE DAY INGENUITY MADE HISTORY</p><h2>April 19, 2021: a new kind of first.</h2><p>Ingenuity climbed to about 3 meters, hovered for about 30 seconds, then landed after a total flight of 39.1 seconds. It was the first powered, controlled flight on another planet.</p><div className="ing-evidence-panel"><span>VERIFIED NASA EVIDENCE</span><p>Perseverance recorded the first flight from a nearby overlook. Ingenuity&apos;s own navigation camera also captured its view while its onboard guidance, navigation, and control systems flew the aircraft autonomously.</p><a href="https://science.nasa.gov/photojournal/perseverances-mastcam-z-video-of-ingenuitys-first-full-flight/" target="_blank" rel="noreferrer" onClick={() => setFirstFlightViewed(true)}><Play aria-hidden="true" /> Watch the Historic First Flight <ExternalLink aria-hidden="true" /></a></div><Action onClick={() => { setFirstFlightViewed(true) }} disabled={firstFlightViewed}>I Viewed the Historic Flight Evidence</Action><Action onClick={() => advance(7)} disabled={!firstFlightViewed}>Discover What Happened Next</Action></div><NovaNote>Imagine the control room receiving the data. The first flight was only the beginning, not the ending.</NovaNote></article>}
-
-    {chapter === 7 && <article className="ing-scene"><div className="ing-copy wide"><p className="ing-kicker">CHAPTER 7 · FIVE FLIGHTS BECAME SEVENTY-TWO</p><h2>A test became an extended mission.</h2><p>Ingenuity was planned for up to five test flights over 30 days. After those first flights, it became an operations demonstration: scouting terrain, supporting rover planners, and continuing engineering experiments.</p></div><div className="ing-milestones">{[["deployment", "Apr 3, 2021", "Four feet on Mars", "Ingenuity deployed from beneath Perseverance."], ["first", "Apr 19, 2021", "First powered flight", "The first powered, controlled flight on another planet."], ["extended", "May 2021", "Operations demonstration", "The mission moved beyond the initial technology demonstration."], ["scout", "2021–2023", "Aerial scouting", "It previewed terrain and supported Perseverance planning."], ["final", "Jan 18, 2024", "Flight 72", "Its final flight completed nearly three years of operations."]].map(([id, date, title, text]) => <button key={id} type="button" onClick={() => setSelectedMilestone(id)} className={selectedMilestone === id ? "is-selected" : ""}><span>{date}</span><b>{title}</b>{selectedMilestone === id && <p>{text}</p>}</button>)}</div><div className="ing-bottom"><Action onClick={() => advance(8)} disabled={!selectedMilestone}>Investigate Ingenuity&apos;s Final Flight</Action></div><NovaNote>Ingenuity did not collect rock samples or carry dedicated science instruments. Its most important payload was an engineering lesson: flight on Mars could work.</NovaNote></article>}
-
-    {chapter === 8 && <article className="ing-scene"><div className="ing-copy wide"><p className="ing-kicker">CHAPTER 8 · THE FINAL FLIGHT MYSTERY</p><h2>What happened on Flight 72?</h2><p>On January 18, 2024, Ingenuity reached its planned altitude during a short vertical hop. During descent, the mission lost communications. The next day, contact returned; images received later showed severe rotor damage.</p></div><div className="ing-paths"><button type="button" className={finalPath === "rotor" ? "is-selected" : ""} onClick={() => setFinalPath("rotor")}><ScanLine aria-hidden="true" /><b>Examine the Rotor Evidence</b><span>Compare observed damage with what it can — and cannot — prove.</span></button><button type="button" className={finalPath === "reconstruction" ? "is-selected" : ""} onClick={() => setFinalPath("reconstruction")}><b>Reconstruct Flight 72</b><span>Follow ascent, descent, interrupted communication, and the later evidence recovery.</span></button></div>{finalPath === "rotor" && <div className="ing-response"><b>Observed:</b> imagery confirmed severe damage to Ingenuity&apos;s rotor blades. NASA declared the flight mission complete on January 25, 2024. Damage is confirmed; the exact physical sequence was investigated from afar.</div>}{finalPath === "reconstruction" && <div className="ing-timeline"><span>0–19 SEC<br /><b>Climb, hover, images</b></span><span>19–32 SEC<br /><b>Descent begins</b></span><span>~32 SEC<br /><b>On surface; communications stop</b></span><span>NEXT DAYS<br /><b>Contact returns; damage imagery arrives</b></span></div>}{finalPath && <><p className="ing-prompt">Before opening NASA&apos;s conclusion, which clue seems most important?</p><div className="ing-choice-row">{[["damage", "The rotor damage"], ["features", "The lack of ground features"], ["signal", "The communication interruption"]].map(([id, label]) => <button key={id} type="button" className={finalPrediction === id ? "is-selected" : ""} onClick={() => setFinalPrediction(id)}>{label}</button>)}</div>{finalPrediction && <Action onClick={() => setFindingsViewed(true)}>Reveal NASA&apos;s Investigation Findings</Action>}</>}{findingsViewed && <div className="ing-findings"><div><span>OBSERVED</span><p>Severe rotor damage and a communications interruption after the landing.</p></div><div><span>LIKELY CONTRIBUTOR</span><p>NASA&apos;s investigation found that a lack of surface texture likely gave the navigation system too little information, producing high horizontal touchdown velocity.</p></div><div><span>WHAT REMAINS CAREFUL</span><p>NASA described a most-likely reconstruction, not a direct eyewitness account of every instant of the landing.</p></div></div>}{findingsViewed && <div className="ing-bottom"><Action onClick={() => advance(9)}>Explore Ingenuity&apos;s Legacy</Action></div>}<NovaNote>What do you think happened? On Mars there were no eyewitnesses or flight recorder to recover — only data, images, and careful engineering reasoning.</NovaNote></article>}
-
-    {chapter === 9 && <article className="ing-scene"><div className="ing-copy wide"><p className="ing-kicker">CHAPTER 9 · WHAT INGENUITY LEFT BEHIND</p><h2>A short test campaign changed the map of what was possible.</h2><div className="ing-findings"><div><span>ORIGINAL GOAL</span><p>Demonstrate powered flight through a short, up-to-five-flight test campaign.</p></div><div><span>ACTUAL ACHIEVEMENT</span><p>72 flights across nearly three years, including aerial scouting and extended engineering work.</p></div><div><span>DOCUMENTED LESSONS</span><p>Powered flight in a thin atmosphere, autonomous navigation, and engineering data for future aerial explorers.</p></div></div><p className="ing-prompt">If Ingenuity had never flown, what possibility might engineers still have needed to demonstrate?</p><div className="ing-choice-row"><button type="button" className={legacyThought === "scout" ? "is-selected" : ""} onClick={() => setLegacyThought("scout")}>Aerial scouting on Mars</button><button type="button" className={legacyThought === "autonomy" ? "is-selected" : ""} onClick={() => setLegacyThought("autonomy")}>Autonomous flight in thin air</button><button type="button" className={legacyThought === "impossible" ? "is-selected" : ""} onClick={() => setLegacyThought("impossible")}>All future Mars missions</button></div>{legacyThought && <div className="ing-response">{legacyThought === "impossible" ? "Future missions would not have been impossible without Ingenuity. Its documented achievement was proving a valuable possibility and supplying real engineering experience." : "That is a thoughtful possibility. Ingenuity supplied real evidence about that challenge while opening a new aerial perspective for Mars exploration."}</div>}<Action onClick={() => { onFinished(); advance(10) }} disabled={!legacyThought}>Complete My Mission Report</Action></div><NovaNote>So this is where our journey began: a quiet helicopter on Mars. It cannot fly again, but its evidence still helps engineers imagine what might fly next.</NovaNote></article>}
-
-    {chapter === 10 && <article className="ing-scene ing-report"><div className="ing-copy wide"><p className="ing-kicker">CHAPTER 10 · THE EXPLORER&apos;S MISSION REPORT</p><h2>{explorer}&apos;s Ingenuity archive.</h2><p>You followed a small machine from a question in the sand to a historic achievement — and then faced the uncertainty of its final flight.</p></div><div className="ing-report-grid"><div><span>COMPONENTS DISCOVERED</span><b>{discovered.map((id) => ingenuity.components.find((component) => component.id === id)?.name).join(", ") || "No component scans recorded"}</b></div><div><span>OPENING INVESTIGATION PATH</span><b>{purpose === "design" ? "Ingenuity's design" : purpose === "journey" ? "Its journey to Mars" : purpose === "flight" ? "Evidence from Flight 72" : "Not recorded"}</b></div><div><span>ENGINEERING EXPERIMENTS</span><b>{experiments.length} attempt{experiments.length === 1 ? "" : "s"} · {experiments.map((test) => test.outcome).join(", ") || "None recorded"}</b></div><div><span>FINAL-FLIGHT EVIDENCE</span><b>{finalPath === "rotor" ? "Rotor evidence" : finalPath === "reconstruction" ? "Flight 72 reconstruction" : "Not recorded"}</b></div><div><span>HISTORICAL DISCOVERIES</span><b>First flight: April 19, 2021 · 72nd flight: January 18, 2024 · mission completion: January 25, 2024</b></div><div><span>WHAT NASA ACHIEVED</span><b>Powered, controlled flight on another planet; 72 flights; new evidence about autonomous aerial exploration.</b></div><div><span>FINAL CONDITION</span><b>Severe rotor damage after Flight 72 ended flight operations; NASA continued receiving some engineering data afterward.</b></div><div><span>KEY LESSON</span><b>Careful tests, evidence, and honest uncertainty can turn a tiny technology demonstration into a lasting engineering legacy.</b></div></div><div className="ing-bottom report-actions"><Action onClick={onReplay}><ChevronLeft aria-hidden="true" /> Replay Ingenuity</Action><Action onClick={onChooseAnother}>Choose Another Mission</Action><Action onClick={() => window.print()}><Printer aria-hidden="true" /> Save My Mission Report</Action></div><NovaNote>You led this investigation, {explorer}. The report records your choices alongside what NASA actually documented.</NovaNote></article>}
-
-    <style jsx>{`
-      .ing-journey { width: min(1100px, calc(100% - 32px)); margin: 28px auto 72px; color: #e7f1ed; }
-      .ing-progress { display:flex; justify-content:space-between; align-items:end; gap:24px; padding:0 0 18px; border-bottom:1px solid rgba(124,210,205,.23) } .ing-progress span,.ing-kicker,.ing-source,.ing-evidence span,.ing-report-grid span,.ing-findings span { color:#8bd9d4; font:700 10px ui-monospace,SFMono-Regular,Menlo,monospace; letter-spacing:1.35px; } .ing-progress h1 { margin:7px 0 0; font-size:clamp(25px,4vw,44px); line-height:1; } .ing-progress ol{display:flex; flex-wrap:wrap; justify-content:end; gap:5px; padding:0;margin:0; list-style:none}.ing-progress li{display:grid;place-items:center;width:25px;height:25px;border:1px solid #42636d;border-radius:50%;color:#7896a0;font:700 9px ui-monospace}.ing-progress li.is-done{border-color:#77cfc4;color:#a9e4db}.ing-progress li.is-current{background:#efaa67;color:#102536;border-color:#efaa67}
-      .ing-scene { display:grid; gap:26px; padding:clamp(22px,5vw,54px); margin-top:24px; border:1px solid rgba(122,192,193,.22); border-radius:24px; background:linear-gradient(135deg,rgba(18,48,61,.93),rgba(13,28,43,.95)); box-shadow:0 22px 70px rgba(0,0,0,.18) }.ing-opening{grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:center}.ing-copy{max-width:720px}.ing-copy h2{margin:8px 0 14px;color:#f7f2e9;font-family:Georgia,serif;font-size:clamp(28px,4vw,46px);line-height:1.05}.ing-copy p{color:#c4d4d4;font-size:15px;line-height:1.7}.ing-photo{position:relative;overflow:hidden;min-height:340px;border-radius:16px}.ing-photo img{width:100%;height:100%;object-fit:cover}.ing-photo span{position:absolute;right:12px;bottom:12px;padding:6px 8px;background:rgba(5,18,28,.78);font:700 8px ui-monospace;letter-spacing:1px}.ing-nova{display:flex;align-items:end;gap:12px;padding:15px 18px;border-left:3px solid #efaa67;background:rgba(8,24,37,.6)}.ing-nova img{width:68px;align-self:end}.ing-nova span{color:#f4b878;font:800 9px ui-monospace;letter-spacing:1px}.ing-nova p{margin:5px 0 0;color:#d9e4df;font-size:13px;line-height:1.55}.ing-action{display:inline-flex;gap:8px;align-items:center;margin-top:12px;padding:0 16px;min-height:44px;border-radius:10px;font-size:10px}.ing-action:disabled{opacity:.45;cursor:not-allowed}.ing-reveal,.ing-response,.ing-test-log,.ing-evidence-panel{margin-top:16px;padding:16px;border:1px solid rgba(135,216,211,.26);border-radius:12px;background:rgba(6,25,38,.58)}.ing-response{line-height:1.6}.ing-choice-row{display:flex;flex-wrap:wrap;gap:8px;margin:13px 0}.ing-choice-row button,.ing-milestones button,.ing-paths button{border:1px solid rgba(133,194,196,.32);border-radius:9px;background:rgba(16,53,65,.63);color:#d8e6e1;cursor:pointer}.ing-choice-row button{padding:10px 12px;font-size:12px}.ing-choice-row button.is-selected,.ing-milestones button.is-selected,.ing-paths button.is-selected{border-color:#efaa67;background:rgba(239,170,103,.15);color:#fff0d8}.ing-timeline{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;margin:20px 0}.ing-timeline span{padding:13px;border-top:2px solid #77cec2;background:rgba(117,202,194,.08);color:#98b3b4;font:9px ui-monospace;line-height:1.6}.ing-timeline b{display:block;color:#eaf2ec;font-family:inherit;font-size:11px}.ing-investigation{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(220px,.55fr);gap:20px;align-items:start}.ing-evidence{min-height:240px;padding:18px;border:1px solid rgba(135,216,211,.22);border-radius:14px;background:rgba(6,24,37,.57)}.ing-evidence h3{margin:10px 0;color:#f6efe1;font:700 22px Georgia,serif}.ing-evidence p{color:#b8cdcb;font-size:13px;line-height:1.6}.ing-bottom{display:flex;flex-wrap:wrap;gap:12px;align-items:center}.ing-bottom .ing-nova{flex:1 1 500px}.ing-lab{display:grid;grid-template-columns:minmax(0,1fr) minmax(270px,.85fr);gap:20px}.ing-controls{padding:20px;border:1px solid rgba(130,210,205,.27);border-radius:16px;background:rgba(7,26,40,.55)}.ing-controls label{display:block;margin-bottom:18px}.ing-controls label>span{display:flex;justify-content:space-between;color:#e8f0e8;font-size:13px}.ing-controls output{color:#f5b877;font-family:ui-monospace}.ing-controls input{width:100%;accent-color:#7bd6cf}.ing-controls small{color:#8da7aa;font-size:11px}.ing-flight{position:relative;min-height:285px;overflow:hidden;border:1px solid rgba(130,210,205,.25);border-radius:16px;background:linear-gradient(180deg,#15384a 0 62%,#805047 62%);padding:16px}.ing-flight>span{font:700 9px ui-monospace;color:#a5ded8}.ing-flight p{position:absolute;right:18px;bottom:14px;left:18px;color:#edf2eb;font-size:13px;line-height:1.5}.ing-heli{position:absolute;top:47%;left:50%;width:145px;height:115px;transform:translate(-50%,-50%)}.ing-heli i{position:absolute;left:-10px;width:165px;height:4px;border-radius:9px;background:#e7eadf;transform:rotate(7deg)}.ing-heli i+ i{top:16px;transform:rotate(-7deg)}.ing-heli b{position:absolute;top:31px;left:53px;width:42px;height:32px;border:3px solid #e6e8da;border-radius:45% 45% 22% 22%;background:#35747a}.ing-heli em{position:absolute;top:63px;left:50px;width:48px;height:25px;border-right:3px solid #e6e8da;border-bottom:3px solid #e6e8da;border-left:3px solid #e6e8da}.outcome-suitable .ing-heli{animation:ing-hover 2.2s ease-in-out infinite}.outcome-insufficient .ing-heli{transform:translate(-50%,-15%)}.ing-test-log p{margin:7px 0 0;color:#d2e0db;line-height:1.55}.ing-text-button{display:inline-flex;gap:6px;align-items:center;margin-top:9px;border:0;background:transparent;color:#f5bf80;text-decoration:underline;cursor:pointer}.ing-evidence-panel a{display:inline-flex;gap:7px;align-items:center;color:#8de2d8;font-weight:700;font-size:12px}.ing-milestones{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}.ing-milestones button{min-height:135px;padding:14px;text-align:left}.ing-milestones span{display:block;color:#83d5cf;font:9px ui-monospace}.ing-milestones b{display:block;margin-top:8px;font-size:13px}.ing-milestones p{margin:10px 0 0;font-size:11px;line-height:1.45}.ing-paths{display:grid;grid-template-columns:1fr 1fr;gap:14px}.ing-paths button{display:grid;gap:9px;min-height:150px;padding:20px;text-align:left}.ing-paths b{font-size:16px}.ing-paths span{color:#adc2c3;font-size:12px;line-height:1.5}.ing-prompt{margin-top:20px;color:#e8f2ec;font-weight:700}.ing-findings{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:18px}.ing-findings>div{padding:14px;border:1px solid rgba(137,207,201,.2);border-radius:10px;background:rgba(6,23,36,.48)}.ing-findings p{margin:8px 0 0;color:#c2d2d2;font-size:12px;line-height:1.6}.ing-report-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.ing-report-grid div{padding:14px;border:1px solid rgba(135,216,211,.22);border-radius:10px;background:rgba(5,22,34,.43)}.ing-report-grid span{display:block}.ing-report-grid b{display:block;margin-top:8px;color:#e8f1e9;font-size:13px;line-height:1.55}.report-actions{justify-content:center}@keyframes ing-hover{50%{transform:translate(-50%,-66%) rotate(-2deg)}}@media(max-width:760px){.ing-journey{width:min(100% - 20px,1100px);margin-top:16px}.ing-progress{align-items:start;flex-direction:column}.ing-opening,.ing-investigation,.ing-lab{grid-template-columns:1fr}.ing-scene{padding:22px 17px;border-radius:17px}.ing-photo{min-height:250px}.ing-timeline,.ing-milestones,.ing-findings,.ing-report-grid,.ing-paths{grid-template-columns:1fr 1fr}.ing-milestones button{min-height:100px}.ing-copy h2{font-size:31px}}@media(max-width:450px){.ing-timeline,.ing-milestones,.ing-findings,.ing-report-grid,.ing-paths{grid-template-columns:1fr}.ing-progress ol{justify-content:start}.ing-nova img{width:54px}.ing-nova{padding:12px}.ing-copy p{font-size:14px}}@media(prefers-reduced-motion:reduce){.outcome-suitable .ing-heli{animation:none}}
-      .ing-journey:has(.opening-mission){width:100%;margin:0}.ing-journey:has(.opening-mission)>.ing-progress{display:none}.opening-mission{position:relative;min-height:calc(100dvh - 76px);margin:0 calc(50% - 50vw);padding:18px clamp(18px,5vw,72px) 28px;background:#060d16;color:#e7f1ed;overflow:hidden}.opening-mission::before{position:absolute;inset:0;z-index:0;background:radial-gradient(circle at 52% 48%,transparent 20%,rgba(2,7,12,.72) 100%);pointer-events:none;content:""}.opening-topline,.opening-image-shell,.opening-action-bar,.opening-evidence,.opening-choice,.opening-objectives,.opening-sources{position:relative;z-index:1;width:min(1200px,100%);margin-inline:auto}.opening-topline{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;margin-bottom:16px;color:#aab8c5;font:700 9px ui-monospace,SFMono-Regular,monospace;letter-spacing:1.1px}.opening-topline>div{display:flex;align-items:center;gap:12px}.opening-topline>div:first-child{align-items:flex-start;flex-direction:column;gap:5px}.opening-topline strong{color:#f0f4f0;font-size:12px}.opening-back,.opening-source-toggle,.opening-text-control,.opening-outline-control{border:0;background:transparent;color:#aab8c5;font:inherit;letter-spacing:inherit;cursor:pointer}.opening-back{display:inline-flex;align-items:center;gap:4px;padding:0;color:#8bcfcb}.opening-back svg{width:13px;height:13px}.opening-source-toggle{padding:7px 9px;border:1px solid #324353;border-radius:999px;color:#cbd7d7}.opening-progress{display:flex;gap:4px}.opening-progress i{display:block;width:8px;height:8px;border:1px solid #49616a;border-radius:50%}.opening-progress i:first-child{border-color:#84ded7;background:#84ded7;box-shadow:0 0 10px #84ded7}.opening-image-shell{aspect-ratio:4.5/1;min-height:260px;overflow:hidden;border:1px solid rgba(121,222,214,.38);border-radius:18px;background:#17120e;box-shadow:0 28px 68px rgba(0,0,0,.43);cursor:crosshair}.opening-image-shell>img{display:block;width:100%;height:100%;object-fit:contain;transform:scale(1.015);animation:opening-pan 18s ease-in-out infinite alternate}.archive-label,.scanner-status{position:absolute;padding:7px 10px;border:1px solid rgba(120,225,218,.28);background:rgba(4,13,21,.75);color:#d6e9e7;font:700 8px ui-monospace,SFMono-Regular,monospace;letter-spacing:1px}.archive-label{top:13px;left:13px}.scanner-status{right:13px;bottom:13px;display:flex;align-items:center;gap:7px}.scanner-lens{position:absolute;width:150px;height:150px;border:2px solid #8bfff1;border-radius:50%;background-image:url('/mission-images/ingenuity-valinor-hills.jpg');background-repeat:no-repeat;background-size:285% auto;box-shadow:0 0 0 1px rgba(1,8,14,.8),0 0 28px rgba(92,246,230,.65);transform:translate(-50%,-50%);pointer-events:none}.scanner-lens::after{position:absolute;inset:12px;border:1px solid rgba(132,255,243,.55);border-radius:50%;content:""}.verified-marker{position:absolute;left:50%;top:53%;display:grid;place-items:center;width:68px;height:68px;border:2px solid #91fff3;border-radius:50%;background:rgba(7,50,55,.42);box-shadow:0 0 0 12px rgba(116,239,226,.12),0 0 35px rgba(116,239,226,.8);transform:translate(-50%,-50%);animation:marker-pulse 1.5s ease-in-out infinite}.verified-marker span{position:absolute;top:79px;width:max-content;color:#9cf8ed;font:700 8px ui-monospace,SFMono-Regular,monospace;letter-spacing:1px}.opening-action-bar{display:flex;align-items:center;justify-content:space-between;gap:18px;padding-top:14px}.opening-action-bar p{margin:0;color:#c1cdd2;font-size:13px;line-height:1.5}.opening-action-bar div{display:flex;flex-wrap:wrap;gap:10px}.opening-text-control{padding:11px;color:#9deee7}.opening-outline-control{padding:11px 13px;border:1px solid #4f7478;border-radius:9px;color:#cfe8e5}.opening-sources{display:flex;flex-wrap:wrap;gap:8px;padding:10px 0;color:#aebbc4;font:10px/1.45 ui-monospace,SFMono-Regular,monospace}.opening-sources b{color:#8be1dc}.opening-sources a{color:#b9e7e3}.opening-dialogue{position:absolute;z-index:5;inset:0;display:grid;place-items:center;padding:20px;background:rgba(3,8,14,.68);backdrop-filter:blur(5px)}.opening-dialogue-inner{position:relative;display:flex;align-items:flex-end;gap:18px;width:min(680px,100%);padding:18px;border:1px solid rgba(119,232,223,.65);border-radius:18px;background:rgba(8,22,35,.94);box-shadow:0 20px 60px rgba(0,0,0,.45);animation:dialogue-in .3s ease both}.opening-dialogue img{width:clamp(82px,12vw,132px);align-self:flex-end}.opening-dialogue span{color:#f2b170;font:800 9px ui-monospace,SFMono-Regular,monospace;letter-spacing:1.2px}.opening-dialogue p{margin:7px 28px 0 0;color:#e5eff0;font-size:15px;line-height:1.55}.dialogue-dismiss{position:absolute;top:11px;right:11px;width:30px;height:30px;border:0;border-radius:50%;background:#203243;color:#d7e5e5;font-size:20px;cursor:pointer}.opening-evidence,.opening-choice,.opening-objectives{display:grid;grid-template-columns:minmax(0,.92fr) minmax(0,1.08fr);gap:26px;align-items:center;margin-top:18px;padding:22px;border:1px solid rgba(120,219,213,.32);border-radius:18px;background:rgba(9,24,37,.96);animation:dialogue-in .35s ease both}.opening-evidence figure{margin:0}.opening-evidence figure>img{display:block;width:100%;border-radius:12px}.opening-evidence figcaption,.opening-evidence small{display:block;margin-top:7px;color:#8fa3ae;font:9px/1.45 ui-monospace,SFMono-Regular,monospace}.opening-evidence h2,.opening-choice h2,.opening-objectives h2{margin:6px 0 10px;color:#f3f0e9;font-size:clamp(25px,3.5vw,42px);line-height:1.05}.opening-evidence p,.opening-choice>p,.opening-preview p,.opening-objectives>p{color:#c6d2d6;font-size:14px;line-height:1.6}.opening-evidence>div>span,.opening-objectives article span{color:#8be1dc;font:700 9px ui-monospace,SFMono-Regular,monospace;letter-spacing:1px}.deployment-photo{display:block;width:100%;max-width:300px;max-height:150px;margin-top:10px;border-radius:10px;object-fit:cover}.opening-choice,.opening-objectives{display:block;max-width:860px}.opening-choice-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.opening-choice-grid button{display:flex;min-height:120px;flex-direction:column;gap:8px;padding:16px;border:1px solid #365967;border-radius:12px;background:#102434;color:#d9e9e9;text-align:left;cursor:pointer;transition:transform .2s ease,border-color .2s ease}.opening-choice-grid button:hover{border-color:#89e4dc;transform:translateY(-2px)}.opening-choice-grid b{font-size:15px;color:#f4f2e8}.opening-choice-grid span{color:#abc0c4;font-size:12px;line-height:1.45}.opening-preview{max-width:640px}.opening-objectives>div{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.opening-objectives article{display:flex;min-height:100px;flex-direction:column;justify-content:center;gap:9px;padding:15px;border:1px solid #365967;border-radius:12px;background:#102434}.opening-objectives article b{font-size:15px;line-height:1.35}.opening-rewind{position:absolute;z-index:7;inset:0;display:grid;place-items:center;background:radial-gradient(circle,#17313e 0%,#060d16 58%);color:#c8fff7;font:800 clamp(12px,2vw,18px) ui-monospace,SFMono-Regular,monospace;letter-spacing:3px;animation:rewind .52s ease both}.opening-mission .ing-action{margin-top:14px}@keyframes opening-pan{from{transform:scale(1.015) translateX(-.5%)}to{transform:scale(1.06) translateX(.5%)}}@keyframes marker-pulse{50%{box-shadow:0 0 0 18px rgba(116,239,226,.06),0 0 45px rgba(116,239,226,.95)}}@keyframes dialogue-in{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}@keyframes rewind{from{opacity:0}to{opacity:1}}@media (max-width:700px){.opening-mission{min-height:calc(100dvh - 60px);padding:14px 14px 20px}.opening-topline{margin-bottom:12px}.opening-topline>div:last-child>span,.opening-progress{display:none}.opening-image-shell{aspect-ratio:1.2/1;min-height:280px}.opening-image-shell>img{object-fit:contain}.archive-label{max-width:180px}.scanner-status{max-width:180px}.scanner-lens{width:116px;height:116px}.opening-action-bar{align-items:flex-start;flex-direction:column}.opening-action-bar div{width:100%}.opening-outline-control{flex:1}.opening-dialogue{align-items:end;padding:12px}.opening-dialogue-inner{align-items:flex-start;gap:12px;padding:15px}.opening-dialogue img{width:78px}.opening-dialogue p{font-size:14px}.opening-evidence{grid-template-columns:1fr;gap:16px;padding:15px}.opening-choice,.opening-objectives{padding:16px}.opening-choice-grid,.opening-objectives>div{grid-template-columns:1fr}.opening-choice-grid button{min-height:0}.opening-rewind{letter-spacing:1.5px;text-align:center}}@media (prefers-reduced-motion:reduce){.opening-image-shell>img,.verified-marker,.opening-dialogue-inner,.opening-evidence,.opening-rewind{animation:none}}
-    `}</style>
-    <style jsx>{`
-      .ing-journey:has(.opening-mission) { width: 100%; margin: 0; }
-      .opening-mission { min-height: calc(100dvh - 76px); padding: 18px clamp(18px, 5vw, 72px) 28px; overflow: visible; }
-      .opening-image-shell { display: grid; aspect-ratio: auto; cursor: default; }
-      .opening-panorama-shell { min-height: clamp(240px, 38vw, 440px); }
-      .opening-reveal-shell { min-height: clamp(300px, 57vh, 590px); }
-      .opening-reveal-shell > img { width: 100%; height: 100%; object-fit: contain; }
-      .opening-action-bar, .opening-choice, .opening-objectives { display: flex; }
-      .opening-choice, .opening-objectives { display: block; }
-      .opening-caption { position: relative; z-index: 1; width: min(1200px, 100%); margin: -4px auto 0; }
-      @media (max-width: 700px) {
-        .opening-mission { min-height: auto; }
-        .opening-panorama-shell { min-height: 210px; }
-        .opening-reveal-shell { min-height: 280px; }
-        .opening-reveal-shell > img { height: 280px; }
-      }
-    `}</style>
-  </section>
+      <style jsx>{`
+        .storybook { width:min(1120px, calc(100% - 32px)); margin:24px auto 72px; color:#e5efed; }
+        .storybook-header { display:grid; grid-template-columns:auto minmax(0, 1fr) auto; gap:18px; align-items:end; padding:0 0 18px; border-bottom:1px solid rgba(113,226,225,.24); }
+        .storybook-header p,.storybook-eyebrow { margin:0; color:#89d5d2; font:800 10px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace; letter-spacing:1.2px; }
+        .storybook-header h1 { margin:7px 0 0; color:#f8f3e9; font-family:Georgia,serif; font-size:clamp(24px,4vw,40px); line-height:1.05; }
+        .storybook-back-link { display:inline-flex; align-items:center; gap:4px; padding:6px 0; border:0; background:transparent; color:#b7ece7; font:800 10px ui-monospace,SFMono-Regular,Menlo,monospace; cursor:pointer; }.storybook-back-link svg{width:15px}
+        .storybook-count { white-space:nowrap; }
+        .storybook-progress { display:flex; gap:5px; padding:18px 0; margin:0; list-style:none; overflow:auto; scrollbar-width:none; }.storybook-progress::-webkit-scrollbar{display:none}.storybook-progress li { display:flex; flex:0 0 auto; align-items:center; gap:7px; color:#758c96; font:700 8px/1.2 ui-monospace,SFMono-Regular,Menlo,monospace; letter-spacing:.6px; }.storybook-progress span { display:grid; width:24px; height:24px; place-items:center; border:1px solid #46616b; border-radius:50%; }.storybook-progress em { font-style:normal; max-width:92px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }.storybook-progress li.is-read span { border-color:#80d4ca; color:#a7e3dc; }.storybook-progress li.is-current span { border-color:#efa868; background:#efa868; color:#102431; }.storybook-progress li.is-current em { color:#f4ddbe; }
+        .storybook-scene { display:grid; grid-template-columns:minmax(0, .95fr) minmax(0, 1.05fr); gap:clamp(24px,5vw,56px); align-items:center; min-height:440px; padding:clamp(24px,5vw,58px); border:1px solid rgba(113,226,225,.22); border-radius:26px; background:radial-gradient(circle at 84% 16%, rgba(239,168,104,.12), transparent 24rem), linear-gradient(135deg,rgba(19,49,62,.94),rgba(9,24,39,.96)); box-shadow:0 24px 70px rgba(0,0,0,.2); animation:scene-enter .42s ease both; }
+        .storybook-copy h2,.storybook-summary h2 { margin:8px 0 15px; color:#f7f1e8; font-family:Georgia,serif; font-weight:400; font-size:clamp(30px,4vw,49px); line-height:1.03; }.storybook-copy > p:not(.storybook-eyebrow),.storybook-summary > p:not(.storybook-eyebrow) { margin:0 0 13px; color:#c4d5d5; font-size:15px; line-height:1.68; }
+        .storybook-visual { min-width:0; }.story-photo,.story-space-art { margin:0; overflow:hidden; border:1px solid rgba(156,211,209,.28); border-radius:18px; background:#091723; box-shadow:0 16px 40px rgba(0,0,0,.25); }.story-photo-button { position:relative; display:block; width:100%; padding:0; border:0; background:#101f2c; cursor:pointer; }.story-photo img { display:block; width:100%; min-height:290px; max-height:420px; object-fit:cover; transition:transform .5s ease; }.story-photo-button:hover img { transform:scale(1.025); }.story-photo-hint { position:absolute; right:12px; bottom:12px; display:inline-flex; min-height:32px; align-items:center; gap:6px; padding:0 10px; border:1px solid rgba(224,243,239,.34); border-radius:999px; background:rgba(6,17,27,.78); color:#ecf5ef; font:800 8px ui-monospace,SFMono-Regular,Menlo,monospace; letter-spacing:.75px; }.story-photo-hint svg{width:14px;color:#efaa67}.story-photo figcaption,.story-space-art figcaption { padding:13px 15px 15px; color:#aebfc2; font-size:12px; line-height:1.45; }.story-photo figcaption p { margin:0; }.story-photo figcaption a { display:inline-flex; align-items:center; gap:5px; margin-top:8px; color:#90ddd8; font:800 8px ui-monospace,SFMono-Regular,Menlo,monospace; letter-spacing:.7px; text-decoration:none; }.story-photo figcaption svg { width:12px; }.story-photo-note { margin-top:10px; padding:9px 10px; border-left:2px solid #efaa67; background:rgba(239,170,103,.1); color:#dceae5; font-size:11px; line-height:1.45; animation:note-enter .25s ease both; }
+        .story-interaction { margin-top:21px; padding:15px; border:1px solid rgba(113,226,225,.25); border-radius:13px; background:rgba(5,20,32,.5); }.story-interaction p { display:flex; align-items:center; gap:7px; margin:0 0 10px; color:#dcece8; font-size:13px; font-weight:700; }.story-interaction p svg{width:16px;color:#efaa67}.story-interaction div { display:flex; flex-wrap:wrap; gap:7px; }.story-interaction button { min-height:37px; padding:0 11px; border:1px solid rgba(139,212,208,.35); border-radius:8px; background:#123140; color:#dcece8; font-size:11px; cursor:pointer; }.story-interaction button.is-selected { border-color:#efaa67; background:rgba(239,170,103,.16); color:#ffe2be; }.story-interaction small { display:block; margin-top:10px; color:#acd6d2; font-size:11px; line-height:1.45; }
+        .story-illustration { margin-top:20px; }.story-illustration :global(.ingenuity-figure) { margin:0; }.story-illustration > p { margin:10px 0 0; color:#a9c0c2; font-size:11px; line-height:1.45; }
+        .story-space-art { position:relative; display:grid; min-height:390px; place-items:center; overflow:hidden; background:radial-gradient(circle at 70% 27%,#eaa56f 0 2px,transparent 3px),radial-gradient(circle at 30% 18%,#c5e5e2 0 1px,transparent 2px),radial-gradient(circle at 62% 48%,rgba(47,110,126,.62),transparent 40%),#0b1b2b; }.story-space-art::before { position:absolute; inset:0; background-image:radial-gradient(circle at 7% 19%,#d8f0ee 0 1px,transparent 1.5px),radial-gradient(circle at 78% 12%,#d8f0ee 0 1px,transparent 1.5px),radial-gradient(circle at 88% 76%,#d8f0ee 0 1px,transparent 1.5px); content:""; opacity:.6; }.story-space-art-orbit { position:absolute; width:130%; height:57%; border:1px solid rgba(113,226,225,.24); border-radius:50%; transform:rotate(-22deg); }.story-space-art-planet { position:relative; z-index:1; display:grid; width:126px; height:126px; place-items:center; border-radius:50%; background:radial-gradient(circle at 34% 28%,#69c9c5 0 8%,#24677a 34%,#11354c 66%,#07182a); box-shadow:inset -20px -15px 26px rgba(0,0,0,.42),0 0 34px rgba(95,203,200,.16); color:#e4f2ee; font:800 10px ui-monospace,SFMono-Regular,Menlo,monospace; letter-spacing:1px; }.story-space-art-planet i { position:absolute; width:165px; height:44px; border:1px solid rgba(239,170,103,.72); border-radius:50%; transform:rotate(-19deg); }.story-space-art-rover { position:absolute; z-index:2; right:11%; bottom:21%; display:grid; gap:4px; padding:10px; border:1px solid rgba(239,170,103,.45); border-radius:8px; background:rgba(10,25,39,.86); color:#f2bc85; font:800 8px ui-monospace,SFMono-Regular,Menlo,monospace; letter-spacing:.7px; }.story-space-art-rover small { color:#b8ced0; font-size:8px; }.story-space-art figcaption { position:absolute; right:0; bottom:0; left:0; z-index:3; background:rgba(5,16,26,.82); }
+        .storybook-nav { display:flex; justify-content:space-between; gap:12px; margin-top:20px; }.storybook-nav-button,.storybook-replay { display:inline-flex; min-height:48px; align-items:center; justify-content:center; gap:6px; padding:0 17px; border:1px solid #71e2e1; border-radius:12px; background:#71e2e1; color:#071721; font:800 10px ui-monospace,SFMono-Regular,Menlo,monospace; letter-spacing:.6px; cursor:pointer; transition:transform .2s ease,background .2s ease; }.storybook-nav-button:hover,.storybook-replay:hover { background:#a3f6ef; transform:translateY(-2px); }.storybook-nav-button:disabled { border-color:#36535c; background:transparent; color:#66808a; cursor:not-allowed; transform:none; }.storybook-nav-secondary { background:transparent; color:#b8dfdc; }.storybook-nav-button svg,.storybook-replay svg{width:15px}
+        .storybook-summary { margin-top:22px; padding:clamp(22px,4vw,38px); border:1px solid rgba(239,170,103,.42); border-radius:22px; background:radial-gradient(circle at 90% 12%,rgba(239,170,103,.15),transparent 20rem),rgba(16,42,53,.92); animation:scene-enter .45s ease both; }.storybook-summary h2 { font-size:clamp(26px,3.5vw,42px); }.storybook-replay { margin-top:8px; border-color:rgba(239,170,103,.7); background:transparent; color:#f8c58e; }
+        @keyframes scene-enter { from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)} } @keyframes note-enter { from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)} }
+        @media (max-width:720px) { .storybook { width:min(100% - 20px, 600px); margin:10px auto 42px; }.storybook-header { grid-template-columns:minmax(0,1fr) auto; gap:7px 12px; }.storybook-back-link { grid-column:1/-1; }.storybook-header h1 { font-size:27px; }.storybook-header p { font-size:8px; }.storybook-progress { padding:13px 0; }.storybook-progress em { display:none; }.storybook-scene { grid-template-columns:1fr; gap:20px; min-height:0; padding:20px; border-radius:19px; }.storybook-copy h2,.storybook-summary h2 { font-size:32px; }.storybook-copy > p:not(.storybook-eyebrow),.storybook-summary > p:not(.storybook-eyebrow) { font-size:14px; line-height:1.58; }.storybook-visual { order:-1; }.story-photo img { min-height:220px; max-height:275px; }.story-space-art { min-height:244px; }.story-space-art-planet { width:94px; height:94px; }.story-space-art-rover { right:6%; bottom:16%; }.story-interaction { margin-top:16px; }.storybook-nav-button { min-height:46px; flex:1; padding:0 10px; font-size:9px; }.storybook-summary { padding:22px; }.story-illustration :global(.ingenuity-figure) { transform:scale(.93); transform-origin:top center; margin-bottom:-22px; } }
+        @media (prefers-reduced-motion:reduce) { .storybook-scene,.storybook-summary,.story-photo-note { animation:none; }.story-photo img,.storybook-nav-button,.storybook-replay { transition:none; } }
+      `}</style>
+    </section>
+  )
 }
