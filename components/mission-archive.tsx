@@ -1,6 +1,5 @@
 import { ExternalLink, ImageIcon, MapPin, Sparkles } from "lucide-react"
 import type { MissionRecord } from "@/components/adventure-content"
-import { MissionInvestigationVisual } from "@/components/mission-investigation-visual"
 
 type MissionArchiveProps = {
   mission: MissionRecord
@@ -19,9 +18,10 @@ export function MissionArchive({ mission, compact = false }: MissionArchiveProps
         <span className="archive-badge"><ImageIcon aria-hidden="true" /> NASA REFERENCE</span>
       </div>
       <div className="archive-feature">
-        <div className={`archive-photo archive-photo-${mission.accent}`}>
-          <MissionInvestigationVisual mission={mission} compact />
-        </div>
+        <figure className={`archive-photo archive-photo-${mission.accent}`}>
+          <img src={mission.image} alt={mission.imageAlt} />
+          <figcaption><span>NASA MISSION IMAGE</span><b>{mission.imageCredit}</b></figcaption>
+        </figure>
         <div className="archive-caption">
           <span className="archive-caption-kicker"><MapPin aria-hidden="true" /> {mission.location}</span>
           <h3>{mission.subtitle}</h3>
