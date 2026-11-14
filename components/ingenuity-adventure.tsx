@@ -3,11 +3,11 @@
 import { useEffect, useMemo, useState } from "react"
 import { Check, ChevronLeft, ExternalLink, Lightbulb, Play, Printer, ScanLine } from "lucide-react"
 import { MISSION_DATA, type FlightTest } from "@/components/adventure-content"
+import { CaptainNovaDialogue } from "@/components/captain-nova-dialogue"
 import { MissionInvestigationVisual } from "@/components/mission-investigation-visual"
-import { EvidenceOverlay, NovaDialogueOverlay } from "@/components/nova-dialogue-overlay"
+import { EvidenceOverlay } from "@/components/nova-dialogue-overlay"
 
 const ingenuity = MISSION_DATA.find((mission) => mission.id === "ingenuity")!
-const portraitUrl = "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Captain%20Nova%20Astronaut%20Portrait-hiFfjYQkdCNLl34lSe7MfLH0CYJ9ZT.png"
 
 type FinalPath = "rotor" | "reconstruction" | null
 type Experiment = FlightTest & { note: string }
@@ -20,7 +20,8 @@ function calculateFlight(size: number, speed: number, mass: number, attempt: num
 }
 
 function NovaNote({ children, hint = false }: { children: React.ReactNode; hint?: boolean }) {
-  return <aside className={`ing-nova${hint ? " is-hint" : ""}`} aria-label={hint ? "Captain Nova hint" : "Captain Nova story guidance"}><img src={portraitUrl} alt="Captain Nova, a friendly fictional astronaut guide" /><div><span>{hint ? "CAPTAIN NOVA · OPTIONAL HINT" : "CAPTAIN NOVA"}</span><p>{children}</p></div></aside>
+  const [open, setOpen] = useState(false)
+  return <><button type="button" className="ing-nova-trigger" onClick={() => setOpen(true)}><Lightbulb aria-hidden="true" /> {hint ? "Ask for Captain Nova&apos;s hint" : "Ask Captain Nova"}</button><CaptainNovaDialogue open={open} onOpenChange={setOpen} actionLabel="Continue investigating" onAction={() => setOpen(false)} dismissible>{children}</CaptainNovaDialogue></>
 }
 
 function Action({ children, onClick, disabled = false }: { children: React.ReactNode; onClick: () => void; disabled?: boolean }) {
@@ -77,9 +78,9 @@ export function IngenuityAdventure({ nickname, onReplay, onChooseAnother, onFini
       {openingState === "investigationChoice" && <section className="opening-choice"><p className="ing-kicker">YOUR FIRST INVESTIGATION CLUE</p><h2>What are you most curious about, Explorer?</h2><p>Your choice will be remembered as your first discovery and will guide the preview before our journey starts.</p><div className="opening-choice-grid">{[["design", "How Ingenuity learned to fly", "Preview: its light body and fast rotors."], ["journey", "How it reached Mars", "Preview: a protected ride beneath Perseverance."], ["flight", "Why its final flight ended", "Preview: a mystery we will investigate carefully later."]].map(([id, title, text]) => <button key={id} type="button" onClick={() => { setPurpose(id); setOpeningState("choicePreview") }}><b>{title}</b><span>{text}</span></button>)}</div></section>}
       {openingState === "choicePreview" && <section className="opening-choice opening-preview"><p className="ing-kicker">DISCOVERY SAVED · {purpose?.toUpperCase()}</p><h2>{purpose === "design" ? "A lesson in thin air" : purpose === "journey" ? "A passenger on Perseverance" : "A mystery to follow with evidence"}</h2><p>{purpose === "design" ? "Great question. Ingenuity needed a clever design to fly in Mars' thin atmosphere. We will begin with the journey that brought it there." : purpose === "journey" ? "Excellent starting point. Ingenuity reached Mars tucked beneath the Perseverance rover, and our story begins there." : "A thoughtful question. We will save the detailed explanation for later, after gathering the history and the evidence."}</p><div className={`opening-interest-preview preview-${purpose}`} aria-label="Visual preview of your chosen investigation path">{purpose === "design" ? "ROTOR DESIGN PREVIEW" : purpose === "journey" ? "PERSEVERANCE JOURNEY PREVIEW" : "FLIGHT 72 EVIDENCE PREVIEW"}</div></section>}
       {openingState === "transition" && <div className="opening-rewind" role="status">REWINDING THE ARCHIVE · EARTH · 2020</div>}
-      {openingState === "intro" && <NovaDialogueOverlay actionLabel="Meet the Mysterious Helicopter" onAction={() => setOpeningState("search")}><p>Hey, Explorer! I&apos;m Captain Nova. Today, we&apos;re going to investigate a tiny helicopter with an extraordinary story.</p><p>Imagine a machine flying through the thin atmosphere of Mars, far away from Earth. It once achieved something no aircraft had ever done before.</p><p>But eventually, it could no longer fly. Shall we uncover its story?</p></NovaDialogueOverlay>}
-      {openingState === "identified" && <NovaDialogueOverlay title="You found it!" actionLabel="Begin Ingenuity's Story" onAction={() => setOpeningState("investigationChoice")}><p>This is Ingenuity, a little helicopter that made history on Mars!</p><p>It completed seventy-two flights before its flying mission came to an end.</p><p>But how could something so small fly on another planet? And what eventually stopped it?</p></NovaDialogueOverlay>}
-      {purpose && openingState === "choicePreview" && <NovaDialogueOverlay title="A path worth following" actionLabel="Travel Back to 2020" onAction={() => { setOpeningState("transition"); window.setTimeout(() => advance(2), 250) }}><p>{purpose === "design" ? "Your curiosity about flight will help us notice the engineering clues along the way." : purpose === "journey" ? "Your journey question gives us the perfect place to start our story." : "We will keep the final-flight mystery in view, then return to it with the right evidence."}</p></NovaDialogueOverlay>}
+      {openingState === "intro" && <CaptainNovaDialogue open actionLabel="Meet the Mysterious Helicopter" onAction={() => setOpeningState("search")}><p>Hey, Explorer! I&apos;m Captain Nova. Today, we&apos;re going to investigate a tiny helicopter with an extraordinary story.</p><p>Imagine a machine flying through the thin atmosphere of Mars, far away from Earth. It once achieved something no aircraft had ever done before.</p><p>But eventually, it could no longer fly. Shall we uncover its story?</p></CaptainNovaDialogue>}
+      {openingState === "identified" && <CaptainNovaDialogue open title="You found it!" actionLabel="Begin Ingenuity&apos;s Story" onAction={() => setOpeningState("investigationChoice")}><p>This is Ingenuity, a little helicopter that made history on Mars!</p><p>It completed seventy-two flights before its flying mission came to an end.</p><p>But how could something so small fly on another planet? And what eventually stopped it?</p></CaptainNovaDialogue>}
+      {purpose && openingState === "choicePreview" && <CaptainNovaDialogue open title="A path worth following" actionLabel="Travel Back to 2020" onAction={() => { setOpeningState("transition"); window.setTimeout(() => advance(2), 250) }}><p>{purpose === "design" ? "Your curiosity about flight will help us notice the engineering clues along the way." : purpose === "journey" ? "Your journey question gives us the perfect place to start our story." : "We will keep the final-flight mystery in view, then return to it with the right evidence."}</p></CaptainNovaDialogue>}
       {evidenceOpen && <EvidenceOverlay onClose={() => setEvidenceOpen(false)} />}
     </article>}
 
