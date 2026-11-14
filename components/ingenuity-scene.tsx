@@ -1,4 +1,4 @@
-import { Check, ScanLine } from "lucide-react"
+import { Check, Info } from "lucide-react"
 import { INGENUITY_PARTS, type MachinePartId } from "@/components/adventure-content"
 
 type IngenuitySceneProps = {
@@ -9,9 +9,13 @@ type IngenuitySceneProps = {
 }
 
 const hotspotPositions: Record<MachinePartId, string> = {
-  rotors: "hotspot-rotors",
+  blades: "hotspot-blades",
+  antennas: "hotspot-antennas",
   solar: "hotspot-solar",
-  camera: "hotspot-camera",
+  batteries: "hotspot-batteries",
+  avionics: "hotspot-avionics",
+  sensors: "hotspot-sensors",
+  legs: "hotspot-legs",
 }
 
 export function IngenuityScene({
@@ -121,7 +125,7 @@ export function IngenuityScene({
       </div>
       {interactive && (
         <figcaption className="scene-key">
-          <span className="scene-key-instruction"><ScanLine aria-hidden="true" /> Tap a glowing part to scan it</span>
+          <span className="scene-key-instruction"><Info aria-hidden="true" /> Tap a highlighted part to discover what it does.</span>
           <ul aria-label="Parts to discover">
             {INGENUITY_PARTS.map((part) => (
               <li key={part.id} className={discovered.includes(part.id) ? "is-discovered" : ""}>
