@@ -1,4 +1,5 @@
 import { ExternalLink, ImageIcon, MapPin, Sparkles } from "lucide-react"
+import { AnimatedHeading } from "@/components/animated-heading"
 import type { MissionRecord } from "@/components/adventure-content"
 
 type MissionArchiveProps = {
@@ -24,7 +25,7 @@ export function MissionArchive({ mission, compact = false }: MissionArchiveProps
         </figure>
         <div className="archive-caption">
           <span className="archive-caption-kicker"><MapPin aria-hidden="true" /> {mission.location}</span>
-          <h3>{mission.subtitle}</h3>
+          <AnimatedHeading>{mission.subtitle}</AnimatedHeading>
           <p>{mission.actualResult}</p>
           <a href={mission.imageSource} target="_blank" rel="noreferrer">Open NASA mission reference <ExternalLink aria-hidden="true" /></a>
         </div>
