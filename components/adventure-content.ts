@@ -11,6 +11,8 @@ export type MissionComponent = {
   name: string
   description: string
   observation: string
+  nova?: string
+  interaction?: string
 }
 
 export type MissionChoice = {
@@ -116,9 +118,13 @@ export const MISSION_DATA: MissionRecord[] = [
       report: "You tested the trade-offs that make a thin atmosphere so difficult, Explorer. Ingenuity proved that a small machine can open a whole new view of Mars.",
     },
     components: [
-      { id: "rotors", name: "Counter-rotating rotors", description: "Two long rotor blades spun fast enough to push against Mars' thin atmosphere.", observation: "More blade area and high speed can create lift when the air is scarce." },
-      { id: "solar", name: "Solar panel and batteries", description: "A top-mounted panel gathered sunlight, then the batteries powered flights and kept the helicopter warm overnight.", observation: "A mission must solve the problem that happens between adventures, not just during them." },
-      { id: "navigation", name: "Navigation camera", description: "A downward-looking camera helped the onboard computer track movement over the ground.", observation: "Ingenuity flew autonomously because radio signals take too long for live joystick control." },
+      { id: "blades", name: "Blades", description: "Four carbon-fiber blades formed two counter-rotating rotors. Each rotor was about 1.2 meters across and turned at about 2,400 rpm in the original flight design.", observation: "Large, fast rotors moved enough of Mars' thin air to create lift.", nova: "Look at those enormous blades! Why would a tiny helicopter need them so large?", interaction: "Compare the upper and lower rotors: they spin in opposite directions in flight." },
+      { id: "antennas", name: "Antennas", description: "Ingenuity sent its information to the Perseverance rover, which relayed it onward through the Mars communications network.", observation: "Ingenuity did not make a direct phone call to Earth; Perseverance was its nearby communications partner.", nova: "How could a helicopter millions of kilometers away get a message home?", interaction: "Trace the route: Ingenuity → Perseverance → Mars communications network → Mission Control." },
+      { id: "solar", name: "Solar panel", description: "The solar array gathered sunlight and recharged Ingenuity's batteries between flights.", observation: "Sunlight supplied new energy while the helicopter rested on the Martian surface.", nova: "Flying takes energy. Where could a tiny helicopter get more electricity on Mars?", interaction: "Imagine sunlight filling the battery indicator between flights." },
+      { id: "batteries", name: "Batteries", description: "A six-battery rechargeable lithium-ion system powered flight operations and supported the helicopter's systems.", observation: "Stored energy had to cover both flight and survival through cold Martian nights.", nova: "What happens when the motors need power—or the night gets freezing cold?", interaction: "Compare stored energy for flight with energy for keeping systems warm." },
+      { id: "avionics", name: "Avionics & body", description: "The lightweight fuselage housed electronics that supported autonomous flight. Insulation and heaters protected sensitive systems during cold Martian nights.", observation: "Because Earth could not steer every movement instantly, Ingenuity used onboard information to control its flight.", nova: "This is the helicopter's brain. Could someone on Earth steer every movement in real time?", interaction: "Follow the simple loop: sensors → onboard computer → controlled flight." },
+      { id: "sensors", name: "Sensors & cameras", description: "Ingenuity had a downward-facing navigation camera and a separate color camera. Its onboard navigation used information from sensors and cameras.", observation: "Navigation needs visible ground features—an important clue for understanding Flight 72 later in the mission.", nova: "How can a helicopter know where it is going when nobody is inside to look out?", interaction: "Look for terrain features a navigation camera could track." },
+      { id: "legs", name: "Legs", description: "Lightweight carbon-composite legs supported Ingenuity during takeoff and landing.", observation: "A successful flight still needs a stable, controlled touchdown.", nova: "Even a brilliant flight is not complete unless the helicopter can land. Why do these long legs matter?", interaction: "Compare a level, controlled touchdown with a fictional unstable landing setup." },
     ],
     challengeTitle: "Make lift in thin air",
     challengeIntro: "Tune a simplified test flight. You are not recreating NASA's calculations—just exploring how size, speed, and mass change the balance.",
@@ -137,8 +143,8 @@ export const MISSION_DATA: MissionRecord[] = [
     whatIfPrompt: "If Ingenuity had never flown, what possibility might have stayed untested?",
     whatIfChoices: ["Aerial scouting might have stayed an idea instead of a proven demonstration.", "Rovers would still explore, but mission planners would have one less view from above.", "We might have needed longer to learn how autonomous flight behaves on another world."],
     discoveries: ["Thin atmospheres change familiar engineering rules.", "Autonomy matters when radio signals cannot steer every move.", "A technology demonstration can change the design of future missions."],
-    diagramCaption: "A labeled educational diagram of Ingenuity. The actual NASA mission image is linked in the archive, but its tiny components are not used as clickable evidence.",
-    hotspots: [{ id: "rotors", x: 50, y: 23 }, { id: "solar", x: 50, y: 42 }, { id: "navigation", x: 50, y: 61 }],
+    diagramCaption: "NASA Ames Research Center technical presentation, page 15. The original annotated diagram is shown as a reference; interactive markers are an added learning layer.",
+    hotspots: [{ id: "blades", x: 17.8, y: 31.6 }, { id: "antennas", x: 45.3, y: 27.2 }, { id: "solar", x: 58.1, y: 26.4 }, { id: "batteries", x: 41, y: 51.8 }, { id: "avionics", x: 49.5, y: 57.2 }, { id: "sensors", x: 47.5, y: 53.4 }, { id: "legs", x: 20.8, y: 72.1 }],
   },
   {
     id: "apollo-11",
