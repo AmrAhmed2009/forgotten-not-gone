@@ -140,7 +140,7 @@ export function CaptainNovaDialogue({ context, onChoosePath, onAdvance, open, on
     { label: "Trace the systems", onSelect: () => onChoosePath("systems") },
     { label: "Follow the last clue", onSelect: () => onChoosePath("signal") },
   ] : undefined)
-  const primaryActionLabel = isSequenceMode && !isFinalMessage ? "Next message" : finalActionLabel ?? explicitActionLabel ?? (context ? actionLabel(context.stage) : "Continue")
+  const primaryActionLabel = isSequenceMode && !isFinalMessage ? "Next Message" : finalActionLabel ?? explicitActionLabel ?? (context ? actionLabel(context.stage) : "Continue")
   const completeDialogue = () => {
     ;(onDialogueComplete ?? onAction ?? onAdvance)?.()
     setOpen(false)

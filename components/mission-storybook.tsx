@@ -3,6 +3,7 @@
 import { ChevronLeft, ChevronRight, Download, ExternalLink, Info, Printer } from "lucide-react"
 import { useEffect, useState } from "react"
 import { CaptainNovaDialogue } from "@/components/captain-nova-dialogue"
+import { IngenuityAdventure } from "@/components/ingenuity-adventure"
 import type { MissionId } from "@/components/adventure-content"
 
 const nasa = {
@@ -114,7 +115,12 @@ function StoryVisual({ image, interaction, selected, onSelect }: { image: StoryI
   return <div className="storybook-visual"><figure className="storybook-photo"><img src={image.src} alt={image.alt} /><figcaption><span>{image.record} · {image.type}</span><a href={image.href} target="_blank" rel="noreferrer">NASA record <ExternalLink aria-hidden="true" /></a></figcaption></figure><details className="source-drawer"><summary>Source information</summary><dl><div><dt>Mission</dt><dd>{image.mission}</dd></div><div><dt>Record</dt><dd>{image.record}</dd></div><div><dt>Type</dt><dd>{image.type}</dd></div><div><dt>Capture date</dt><dd>{image.date}</dd></div><div><dt>Credit</dt><dd>{image.credit}</dd></div><div><dt>What is visible</dt><dd>{image.visible}</dd></div></dl></details>{interaction && <section className={`storybook-interaction interaction-${interaction.type}`} aria-label={interaction.prompt}><p><Info aria-hidden="true" /> {interaction.prompt}</p>{interaction.type === "choice" && <><div className="interaction-options">{interaction.options.map((option) => <button key={option.label} type="button" className={selected === option.label ? "is-selected" : ""} onClick={() => onSelect(option.label)}>{option.label}</button>)}</div>{selected && <small>{interaction.options.find((option) => option.label === selected)?.response}</small>}</>}{interaction.type === "parts" && <><div className="interaction-options">{interaction.parts.map((part) => <button key={part.name} type="button" className={selected === part.name ? "is-selected" : ""} onClick={() => onSelect(part.name)}>{part.name}</button>)}</div>{activePart && <small>{activePart.detail}</small>}</>}{interaction.type === "timeline" && <ol className="story-timeline">{interaction.events.map((event) => <li key={event.date}><b>{event.date}</b><span>{event.text}</span></li>)}</ol>}{interaction.type === "landing" && <><button type="button" className="landing-sequence-button" onClick={() => onSelect(selected === "playing" ? "" : "playing")}>{selected === "playing" ? "Hide the landing sequence" : "Watch the Landing Sequence"}</button>{selected === "playing" && <ol className="story-timeline landing-sequence" aria-label="Educational illustration of Pathfinder's landing sequence">{interaction.events.map((event) => <li key={event.date}><b>{event.date}</b><span>{event.text}</span></li>)}</ol>}</>}{interaction.type === "waveform" && <button type="button" className={`waveform ${selected === "playing" ? "is-playing" : ""}`} onClick={() => onSelect("playing")}><span /><span /><span /><span /><span /><em>{selected === "playing" ? interaction.response : "Reveal the evidence note"}</em></button>}{interaction.type === "laser" && <button type="button" className={`laser-pulse ${selected === "sent" ? "is-sent" : ""}`} onClick={() => onSelect("sent")}><span>{selected === "sent" ? interaction.response : "Send educational pulse"}</span></button>}</section>}</div>
 }
 
-export function MissionStorybook({ missionId, nickname, onReplay, onChooseAnother, onFinished }: { missionId: MissionId; nickname: string; onReplay: () => void; onChooseAnother: () => void; onFinished: () => void }) {
+export function MissionStorybook(props: { missionId: MissionId; nickname: string; onReplay: () => void; onChooseAnother: () => void; onFinished: () => void }) {
+  if (props.missionId === "ingenuity") return <IngenuityAdventure nickname={props.nickname} onReplay={props.onReplay} onChooseAnother={props.onChooseAnother} onFinished={props.onFinished} />
+  return <GenericMissionStorybook {...props} />
+}
+
+function GenericMissionStorybook({ missionId, nickname, onReplay, onChooseAnother, onFinished }: { missionId: MissionId; nickname: string; onReplay: () => void; onChooseAnother: () => void; onFinished: () => void }) {
   const story = stories[missionId]
   const explorer = nickname.trim() || "Explorer"
   const [sceneIndex, setSceneIndex] = useState(0)
