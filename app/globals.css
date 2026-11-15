@@ -970,3 +970,51 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 @media (max-width: 820px) { .ing-seven { padding: 16px 14px 52px; }.ing-seven-header { grid-template-columns: 1fr auto; gap: 12px; }.ing-seven-header .ing-seven-back { grid-column: 1 / -1; }.ing-seven-progress { grid-template-columns: repeat(7, 27px); justify-content: space-between; }.ing-seven-progress span { display: none; }.ing-seven-chapter { grid-template-columns: 1fr; gap: 23px; min-height: 0; padding: 20px; }.ing-seven-copy h2 { font-size: clamp(32px, 11vw, 48px); }.ing-design-groups { grid-template-columns: 1fr; }.ing-challenge-grid { grid-template-columns: repeat(2, 1fr); }.ing-stat-strip { grid-template-columns: repeat(2, 1fr); }.ing-seven-summary { grid-template-columns: 1fr; }.ing-summary-facts { grid-template-columns: repeat(2, 1fr); }.ing-summary-actions { grid-column: auto; }.ing-seven-nav { align-items: stretch; flex-direction: column; }.ing-seven-nav-primary { margin-left: 0; justify-content: center; }.ing-seven-nav-secondary { justify-content: center; }.ing-before-after { grid-template-columns: 1fr; } }
 @media (max-width: 460px) { .ing-seven-header h1 { font-size: 29px; letter-spacing: -1px; }.ing-seven-chapter { padding: 16px; border-radius: 18px; }.ing-atmosphere-card { grid-template-columns: 1fr; }.ing-atmosphere-arrow { justify-self: center; transform: rotate(90deg); }.ing-atmosphere-earth, .ing-atmosphere-mars { min-height: 105px; border-radius: 14px; }.ing-challenge-grid { grid-template-columns: 1fr; }.ing-summary-facts { grid-template-columns: 1fr; }.ing-summary-actions { flex-direction: column; }.ing-summary-actions button { justify-content: center; }.ing-photo-open { font-size: 7px; }.ing-seven-photo figcaption strong { font-size: 11px; } }
 @media (prefers-reduced-motion: reduce) { .ing-seven-chapter { animation: none; } }
+
+/* Cinematic story scenes: the evidence leads, while copy and controls stay quiet. */
+.mission-storybook { width: 100%; max-width: none; padding: 18px 0 58px; }
+.mission-storybook-header { position: relative; z-index: 5; }
+.mission-story-progress { position: relative; z-index: 5; max-width: 920px; margin-inline: auto; }
+.mission-story-scene { position: relative; display: grid; grid-template-columns: 1fr; min-height: clamp(560px, calc(100svh - 220px), 760px); padding: 0; overflow: hidden; border: 1px solid rgba(113,226,225,.26); border-radius: 24px; background: #071321; box-shadow: 0 30px 90px rgba(0,0,0,.3); animation: cinematic-scene-in .5s cubic-bezier(.2,.75,.2,1) both; }
+.mission-story-copy { position: absolute; z-index: 4; right: auto; bottom: 0; left: 0; width: min(720px, 78%); max-width: 100%; padding: clamp(84px, 13vw, 170px) clamp(24px, 5vw, 70px) clamp(24px, 4vw, 46px); pointer-events: none; background: linear-gradient(90deg, rgba(4,11,20,.97) 0%, rgba(4,11,20,.82) 62%, transparent 100%); }
+.mission-story-copy h2 { max-width: 650px; margin: 10px 0 14px; font-size: clamp(36px, 5.2vw, 68px); letter-spacing: -3px; text-wrap: balance; }
+.mission-story-copy > p:not(.story-kicker) { max-width: 590px; margin: 0 0 10px; color: #d4dedf; font-size: clamp(12px, 1.25vw, 15px); line-height: 1.55; }
+.storybook-visual { grid-area: 1 / 1; display: flex; min-width: 0; min-height: 100%; flex-direction: column; }
+.storybook-photo { position: relative; flex: 1 0 auto; min-height: clamp(500px, 70svh, 700px); overflow: hidden; border: 0; border-radius: 0; background: #091521; box-shadow: none; isolation: isolate; }
+.storybook-photo::before, .storybook-photo::after { position: absolute; inset: 0; pointer-events: none; content: ""; }
+.storybook-photo::before { z-index: 0; background-image: var(--story-image), linear-gradient(145deg, #142c42, #7b484c); background-position: center; background-size: cover; filter: blur(22px) saturate(.72); opacity: .48; transform: scale(1.08); }
+.storybook-photo::after { z-index: 2; background: linear-gradient(180deg, rgba(4,10,18,.02) 28%, rgba(4,10,18,.2) 48%, rgba(4,10,18,.8) 100%); }
+.storybook-photo img { position: relative; z-index: 1; display: block; width: 100%; height: clamp(500px, 70svh, 700px); max-height: none; padding: clamp(0px, 1.5vw, 18px); object-fit: contain; }
+.storybook-photo figcaption { position: absolute; z-index: 3; right: 0; bottom: 0; left: 0; min-height: 34px; padding: 9px 16px; background: linear-gradient(90deg, rgba(5,14,23,.82), rgba(5,14,23,.35)); }
+.source-drawer, .storybook-interaction { position: relative; z-index: 6; margin: 10px 16px 0; }
+.storybook-interaction { max-width: 720px; align-self: flex-end; margin-bottom: 12px; backdrop-filter: blur(12px); }
+.mission-story-nav { position: relative; z-index: 5; max-width: 940px; margin-inline: auto; }
+.ing-seven { width: 100%; max-width: none; padding: 18px 0 64px; }
+.ing-seven-header, .ing-seven-progress { position: relative; z-index: 5; }
+.ing-seven-progress { max-width: 920px; margin-inline: auto; }
+.ing-seven-chapter { position: relative; display: grid; grid-template-columns: 1fr; min-height: clamp(580px, calc(100svh - 220px), 780px); padding: 0; overflow: hidden; border-radius: 24px; animation: cinematic-scene-in .5s cubic-bezier(.2,.75,.2,1) both; }
+.ing-seven-copy { position: absolute; z-index: 4; right: auto; bottom: 0; left: 0; width: min(700px, 78%); max-width: 100%; padding: clamp(84px, 13vw, 170px) clamp(24px, 5vw, 70px) clamp(24px, 4vw, 46px); pointer-events: none; background: linear-gradient(90deg, rgba(4,11,20,.97) 0%, rgba(4,11,20,.82) 62%, transparent 100%); }
+.ing-seven-copy h2 { max-width: 650px; margin-top: 10px; font-size: clamp(36px, 5.2vw, 68px); letter-spacing: -3px; text-wrap: balance; }
+.ing-seven-visual-stack { grid-area: 1 / 1; min-height: 100%; justify-content: flex-end; }
+.ing-seven-photo { position: relative; min-height: clamp(520px, 70svh, 720px); overflow: hidden; border: 0; border-radius: 0; box-shadow: none; isolation: isolate; }
+.ing-seven-photo::before, .ing-seven-photo::after { position: absolute; inset: 0; pointer-events: none; content: ""; }
+.ing-seven-photo::before { z-index: 0; background-image: var(--story-image), linear-gradient(145deg, #142c42, #7b484c); background-position: center; background-size: cover; filter: blur(22px) saturate(.72); opacity: .48; transform: scale(1.08); }
+.ing-seven-photo::after { z-index: 2; background: linear-gradient(180deg, rgba(4,10,18,.02) 28%, rgba(4,10,18,.22) 50%, rgba(4,10,18,.82) 100%); }
+.ing-seven-photo img { position: relative; z-index: 1; width: 100%; height: clamp(520px, 70svh, 720px); max-height: none; padding: clamp(0px, 1.5vw, 18px); object-fit: contain; }
+.ing-seven-photo figcaption { position: absolute; z-index: 3; right: 0; bottom: 0; left: 0; background: linear-gradient(90deg, rgba(5,14,23,.82), rgba(5,14,23,.35)); }
+.ing-seven-photo.is-compact { min-height: 0; }
+.ing-seven-photo.is-compact img { height: clamp(180px, 34svh, 320px); }
+.ing-seven-nav, .ing-seven-summary { position: relative; z-index: 5; }
+@keyframes cinematic-scene-in { from { opacity: 0; transform: translateY(14px) scale(.995); } to { opacity: 1; transform: translateY(0) scale(1); } }
+@media (max-width: 820px) {
+  .mission-storybook, .ing-seven { padding-inline: 0; }
+  .mission-story-scene, .ing-seven-chapter { display: flex; min-height: auto; flex-direction: column; }
+  .storybook-visual, .ing-seven-visual-stack { order: 1; min-height: 0; }
+  .mission-story-copy, .ing-seven-copy { position: relative; order: 2; width: 100%; margin-top: -56px; padding: 82px 20px 24px; background: linear-gradient(180deg, transparent, rgba(4,11,20,.95) 34%); }
+  .mission-story-copy h2, .ing-seven-copy h2 { font-size: clamp(34px, 10vw, 52px); letter-spacing: -2px; }
+  .storybook-photo, .storybook-photo img, .ing-seven-photo, .ing-seven-photo img { min-height: clamp(330px, 58svh, 520px); height: clamp(330px, 58svh, 520px); }
+  .ing-seven-photo.is-compact, .ing-seven-photo.is-compact img { min-height: 0; height: auto; }
+  .source-drawer, .storybook-interaction { margin-inline: 10px; }
+  .mission-story-nav, .ing-seven-nav { margin-inline: 0; }
+}
+@media (prefers-reduced-motion: reduce) { .mission-story-scene, .ing-seven-chapter { animation: none; } }

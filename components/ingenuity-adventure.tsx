@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, type CSSProperties } from "react"
 import { ArrowLeft, ArrowRight, BatteryCharging, Camera, ExternalLink, Info, MapPin, Maximize2, Printer, Radio, RotateCcw, Satellite, Sun, Thermometer, Wind, X } from "lucide-react"
 import { CaptainNovaDialogue } from "@/components/captain-nova-dialogue"
 
@@ -194,7 +194,7 @@ const challenges = [
 
 function PhotoCard({ image, onOpen, compact = false }: { image: StoryImage; onOpen?: () => void; compact?: boolean }) {
   return (
-    <figure className={`ing-seven-photo${compact ? " is-compact" : ""}`}>
+    <figure className={`ing-seven-photo${compact ? " is-compact" : ""}`} style={{ "--story-image": `url("${image.src}")` } as CSSProperties}>
       <div className="ing-seven-photo-image">
         <img src={image.src} alt={image.alt} />
         {onOpen && <button type="button" className="ing-photo-open" onClick={onOpen}><Maximize2 aria-hidden="true" /> Inspect photo</button>}
