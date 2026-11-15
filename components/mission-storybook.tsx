@@ -1,8 +1,9 @@
 "use client"
 
-import { ChevronLeft, ChevronRight, Download, ExternalLink, Info, Printer } from "lucide-react"
+import { ChevronRight, Download, ExternalLink, Info, Printer } from "lucide-react"
 import { useEffect, useState, type CSSProperties } from "react"
 import { CaptainNovaDialogue } from "@/components/captain-nova-dialogue"
+import { ChapterNavigation, ChapterNavigationActions, StoryResumePrompt, hasStoryProgress, useStoryProgress } from "@/components/chapter-navigation"
 import { IngenuityAdventure } from "@/components/ingenuity-adventure"
 import type { MissionId } from "@/components/adventure-content"
 
@@ -123,8 +124,15 @@ export function MissionStorybook(props: { missionId: MissionId; nickname: string
 function GenericMissionStorybook({ missionId, nickname, onReplay, onChooseAnother, onFinished }: { missionId: MissionId; nickname: string; onReplay: () => void; onChooseAnother: () => void; onFinished: () => void }) {
   const story = stories[missionId]
   const explorer = nickname.trim() || "Explorer"
+  const chapterTitles = story.scenes.map((item) => item.title)
+  const { savedProgress, progressLoaded, saveProgress, clearProgress } = useStoryProgress(missionId, story.scenes.length)
   const [sceneIndex, setSceneIndex] = useState(0)
-  const [showNova, setShowNova] = useState(true)
+  const [dialogueMessageIndex, setDialogueMessageIndex] = useState(0)
+  const [showNova, setShowNova] = useState(false)
+  const [dialogueCompleted, setDialogueCompleted] = useState(false)
+  const [showResume, setShowResume] = useState(false)
+  const [resumeResolved, setResumeResolved] = useState(false)
+  const [showCompletion, setShowCompletion] = useState(false)
   const [selected, setSelected] = useState<string | null>(null)
   const [apolloChoices, setApolloChoices] = useState<Record<string, string>>({})
   const scene = story.scenes[sceneIndex]
@@ -135,10 +143,57 @@ function GenericMissionStorybook({ missionId, nickname, onReplay, onChooseAnothe
   const sequenceQuestions = Object.fromEntries(Object.entries(scene.questions ?? {}).map(([index, question]) => [index, question.options.map((option) => ({ ...option, onSelect: () => undefined }))]))
   const sequenceSkippable = Object.fromEntries(Object.entries(scene.questions ?? {}).filter(([, question]) => question.skippable).map(([index]) => [index, true]))
 
-  useEffect(() => { setSelected(null); setShowNova(true); window.scrollTo({ top: 0, behavior: "smooth" }) }, [sceneIndex])
-  function move(next: number) { if (next === story.scenes.length - 1) onFinished(); setSceneIndex(next) }
+  useEffect(() => {
+    if (!progressLoaded || resumeResolved) return
+    if (hasStoryProgress(savedProgress)) setShowResume(true)
+    else { setResumeResolved(true); setShowNova(true) }
+  }, [progressLoaded, resumeResolved, savedProgress])
+  useEffect(() => {
+    if (!resumeResolved) return
+    setSelected(null)
+    setShowNova(true)
+    setDialogueCompleted(false)
+    window.scrollTo({ top: 0, behavior: "smooth" })
+  }, [resumeResolved, sceneIndex])
+  useEffect(() => {
+    if (!resumeResolved || showCompletion) return
+    const completedChapters = Array.from({ length: sceneIndex }, (_, index) => index)
+    if (dialogueCompleted && !completedChapters.includes(sceneIndex)) completedChapters.push(sceneIndex)
+    saveProgress({ storyId: missionId, chapterIndex: sceneIndex, dialogueMessageIndex, completedChapters, questionAnswers: apolloChoices })
+  }, [apolloChoices, dialogueCompleted, dialogueMessageIndex, missionId, resumeResolved, saveProgress, sceneIndex, showCompletion])
+
+  function continueStory() {
+    const savedChapter = Math.max(0, Math.min(savedProgress?.chapterIndex ?? 0, story.scenes.length - 1))
+    setSceneIndex(savedChapter)
+    setDialogueMessageIndex(Math.max(0, savedProgress?.dialogueMessageIndex ?? 0))
+    setApolloChoices(savedProgress?.questionAnswers ?? {})
+    setShowResume(false)
+    setResumeResolved(true)
+    setShowNova(true)
+  }
+  function startFromBeginning() {
+    clearProgress()
+    setSceneIndex(0)
+    setDialogueMessageIndex(0)
+    setApolloChoices({})
+    setSelected(null)
+    setDialogueCompleted(false)
+    setShowResume(false)
+    setResumeResolved(true)
+    setShowCompletion(false)
+    setShowNova(true)
+  }
+  function move(next: number) {
+    if (next < 0 || next >= story.scenes.length) return
+    setDialogueMessageIndex(0)
+    setSceneIndex(next)
+  }
+  function completeDialogue() { setDialogueCompleted(true); setShowNova(false) }
+  function finishStory() { setShowCompletion(true); onFinished() }
+  function restartStory() { clearProgress(); startFromBeginning() }
+  function replayNova() { setDialogueMessageIndex(0); setDialogueCompleted(false); setShowNova(true) }
   function printStory() { window.print() }
   function saveTakeaway() { const choiceSummary = isApollo && Object.values(apolloChoices).length ? `\n\nChoices recorded:\n${Object.values(apolloChoices).map((choice) => `- ${choice}`).join("\n")}` : ""; const content = `${explorer} explored ${story.title}.\n\n${story.summary}\n\nLasting legacy: ${story.legacy}${choiceSummary}\n\nSource: ${nasa[missionId === "apollo-11" ? "apollo" : missionId]}`; const url = URL.createObjectURL(new Blob([content], { type: "text/plain" })); const anchor = document.createElement("a"); anchor.href = url; anchor.download = `${story.shortTitle.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-takeaway.txt`; anchor.click(); URL.revokeObjectURL(url) }
 
-  return <section className="mission-storybook" aria-labelledby="mission-story-title"><header className="mission-storybook-header"><button type="button" className="story-back" onClick={onChooseAnother}><ChevronLeft aria-hidden="true" /> All stories</button><div><p>MISSION {String(Object.keys(stories).indexOf(missionId) + 1).padStart(2, "0")} · {story.planet.toUpperCase()}</p><h1 id="mission-story-title">{story.title}</h1></div><span aria-label={`Scene ${sceneIndex + 1} of 7`}>{sceneIndex + 1} / 7</span></header><ol className="mission-story-progress" aria-label={`${story.shortTitle} story progress`}>{story.scenes.map((item, index) => <li key={item.title} className={index === sceneIndex ? "current" : index < sceneIndex ? "read" : ""} aria-current={index === sceneIndex ? "step" : undefined}><b>{index + 1}</b><span>{item.title}</span></li>)}</ol><article className="mission-story-scene" key={scene.title}><div className="mission-story-copy"><p className="story-kicker">{scene.kicker}</p><h2>{scene.title}</h2>{scene.narrative.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}</div><StoryVisual image={scene.image} interaction={scene.interaction} selected={selected} onSelect={setSelected} /></article><CaptainNovaDialogue open={showNova} onOpenChange={setShowNova} title="Captain Nova" dialogueId={`${missionId}-${sceneIndex}`} sequenceMessages={novaTurns} sequenceQuestions={isApollo ? sequenceQuestions : undefined} sequenceSkippable={isApollo ? sequenceSkippable : undefined} onSequenceChoice={isApollo ? (messageIndex, label) => setApolloChoices((current) => ({ ...current, [`${sceneIndex}-${messageIndex}`]: label })) : undefined} finalActionLabel="Return to scene" onDialogueComplete={() => setShowNova(false)} dismissible /><nav className="mission-story-nav" aria-label="Story navigation"><button type="button" disabled={sceneIndex === 0} onClick={() => move(sceneIndex - 1)}><ChevronLeft aria-hidden="true" /> Back</button>{isFinal ? <button type="button" className="primary" onClick={onChooseAnother}>{isApollo || isSojourner ? "Explore Another Story" : "Explore another story"} <ChevronRight aria-hidden="true" /></button> : <button type="button" className="primary" onClick={() => move(sceneIndex + 1)}>Next scene <ChevronRight aria-hidden="true" /></button>}</nav>{isFinal && <section className="story-completion" aria-label="Personalized story summary"><p>ARCHIVE NOTE FOR {explorer.toUpperCase()}</p><h2>{isApollo ? "Forgotten? Never." : `${story.shortTitle} is not forgotten.`}</h2><p>{isApollo ? "Apollo 11 launched on July 16, 1969, and Eagle landed on July 20 with Neil Armstrong, Buzz Aldrin, and Michael Collins carrying humanity’s dream to the Moon." : story.summary}</p><p><b>What remained:</b> {isApollo ? "The Descent Stage, EASEP scientific experiments, and the passive laser retroreflector remained on the Moon." : story.remains}</p><p><b>Lasting legacy:</b> {story.legacy}</p><div>{isApollo && <button type="button" onClick={onReplay}>Read This Story Again</button>}<button type="button" onClick={onChooseAnother}><ChevronRight aria-hidden="true" /> Explore Another Story</button><button type="button" onClick={saveTakeaway}><Download aria-hidden="true" /> {isApollo ? "Save My Story" : isSojourner ? "Save My Story" : "Save takeaway"}</button><button type="button" onClick={printStory}><Printer aria-hidden="true" /> Print story</button>{!isApollo && <button type="button" onClick={onReplay}>{isSojourner ? "Read This Story Again" : "Read again"}</button>}</div></section>}</section>
+  return <section className="mission-storybook" aria-labelledby="chapter-navigation-title"><ChapterNavigation storyName={story.title} storyMeta={`MISSION ${String(Object.keys(stories).indexOf(missionId) + 1).padStart(2, "0")} · ${story.planet.toUpperCase()}`} chapterTitles={chapterTitles} chapterIndex={sceneIndex} onExit={onChooseAnother} />{showResume && savedProgress && <StoryResumePrompt storyName={story.shortTitle} savedProgress={savedProgress} chapterTitles={chapterTitles} onContinue={continueStory} onStartBeginning={startFromBeginning} />}<article className="mission-story-scene" key={scene.title}><div className="mission-story-copy"><p className="story-kicker">{scene.kicker}</p><h2>{scene.title}</h2>{scene.narrative.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}</div><StoryVisual image={scene.image} interaction={scene.interaction} selected={selected} onSelect={setSelected} /></article><CaptainNovaDialogue open={showNova} onOpenChange={setShowNova} title="Captain Nova" dialogueId={`${missionId}-${sceneIndex}`} sequenceMessages={novaTurns} sequenceQuestions={isApollo ? sequenceQuestions : undefined} sequenceSkippable={isApollo ? sequenceSkippable : undefined} initialMessageIndex={dialogueMessageIndex} onMessageIndexChange={setDialogueMessageIndex} onSequenceChoice={isApollo ? (messageIndex, label) => setApolloChoices((current) => ({ ...current, [`${sceneIndex}-${messageIndex}`]: label })) : undefined} finalActionLabel="Return to scene" onDialogueComplete={completeDialogue} dismissible={false} /><ChapterNavigationActions chapterIndex={sceneIndex} totalChapters={story.scenes.length} dialogueOpen={showNova} dialogueCompleted={dialogueCompleted} completed={showCompletion} onExit={onChooseAnother} onPrevious={() => move(sceneIndex - 1)} onNext={() => move(sceneIndex + 1)} onFinish={finishStory} onReplayNova={replayNova} />{!showCompletion && <section className="story-completion-wrap">{isFinal && <p className="story-final-hint">Finish Captain Nova&apos;s final message, then choose Finish Story.</p>}</section>}{showCompletion && <section className="story-completion" aria-label="Personalized story summary"><p>ARCHIVE NOTE FOR {explorer.toUpperCase()}</p><h2>{isApollo ? "Forgotten? Never." : `${story.shortTitle} is not forgotten.`}</h2><p>{isApollo ? "Apollo 11 launched on July 16, 1969, and Eagle landed on July 20 with Neil Armstrong, Buzz Aldrin, and Michael Collins carrying humanity’s dream to the Moon." : story.summary}</p><p><b>What remained:</b> {isApollo ? "The Descent Stage, EASEP scientific experiments, and the passive laser retroreflector remained on the Moon." : story.remains}</p><p><b>Lasting legacy:</b> {story.legacy}</p><div><button type="button" onClick={restartStory}>Read Story Again</button><button type="button" onClick={onChooseAnother}><ChevronRight aria-hidden="true" /> Explore Another Story</button><button type="button" onClick={saveTakeaway}><Download aria-hidden="true" /> Save My Story</button><button type="button" onClick={printStory}><Printer aria-hidden="true" /> Print story</button></div></section>}</section>
 }

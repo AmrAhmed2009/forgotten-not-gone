@@ -31,6 +31,8 @@ type CaptainNovaDialogueProps = {
   choices?: DialogueChoice[]
   dismissible?: boolean
   audioLabel?: string
+  initialMessageIndex?: number
+  onMessageIndexChange?: (messageIndex: number) => void
 }
 
 const portraitUrl = "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Captain%20Nova%20Astronaut%20Portrait-hiFfjYQkdCNLl34lSe7MfLH0CYJ9ZT.png"
@@ -71,7 +73,7 @@ function shouldOpen(context: DialogueContext) {
   return context.stage !== "investigation" || Boolean(context.selectedComponent)
 }
 
-export function CaptainNovaDialogue({ context, onChoosePath, onAdvance, open, onOpenChange, title = "Captain Nova", children, actionLabel: explicitActionLabel, finalActionLabel, onAction, onDialogueComplete, sequenceMessages, sequenceQuestions, sequenceSkippable, onSequenceChoice, dialogueId, choices, dismissible = false, audioLabel = "Narration ready in a future update" }: CaptainNovaDialogueProps) {
+export function CaptainNovaDialogue({ context, onChoosePath, onAdvance, open, onOpenChange, title = "Captain Nova", children, actionLabel: explicitActionLabel, finalActionLabel, onAction, onDialogueComplete, sequenceMessages, sequenceQuestions, sequenceSkippable, onSequenceChoice, dialogueId, choices, dismissible = false, audioLabel = "Narration ready in a future update", initialMessageIndex = 0, onMessageIndexChange }: CaptainNovaDialogueProps) {
   const entry = useMemo(() => context ? makeDialogue(context) : null, [context])
   const [contextOpen, setContextOpen] = useState(() => Boolean(context && shouldOpen(context)))
   const [messageIndex, setMessageIndex] = useState(0)
@@ -92,9 +94,13 @@ export function CaptainNovaDialogue({ context, onChoosePath, onAdvance, open, on
 
   useEffect(() => { setMounted(true) }, [])
   useEffect(() => {
-    setMessageIndex(0)
+    const nextIndex = Math.max(0, Math.min(initialMessageIndex, Math.max(totalMessages - 1, 0)))
+    setMessageIndex(nextIndex)
     setSequenceResponse(null)
-  }, [dialogueId])
+  }, [dialogueId, initialMessageIndex, totalMessages])
+  useEffect(() => {
+    if (isSequenceMode) onMessageIndexChange?.(messageIndex)
+  }, [isSequenceMode, messageIndex, onMessageIndexChange])
   useEffect(() => {
     setSequenceResponse(null)
   }, [messageIndex])

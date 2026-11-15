@@ -1,8 +1,9 @@
 "use client"
 
 import { useEffect, useState, type CSSProperties } from "react"
-import { ArrowLeft, ArrowRight, BatteryCharging, Camera, ExternalLink, Info, MapPin, Maximize2, Printer, Radio, RotateCcw, Satellite, Sun, Thermometer, Wind, X } from "lucide-react"
+import { ArrowLeft, BatteryCharging, Camera, ExternalLink, Info, MapPin, Maximize2, Printer, Radio, RotateCcw, Satellite, Sun, Thermometer, Wind, X } from "lucide-react"
 import { CaptainNovaDialogue } from "@/components/captain-nova-dialogue"
+import { ChapterNavigation, ChapterNavigationActions, StoryResumePrompt, hasStoryProgress, useStoryProgress } from "@/components/chapter-navigation"
 
 const NASA_DIAGRAM_URL = "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/anatomy-of-ingenuity-mars-helicopter-OMWWegjUtxd5UxTnKah0vp8xM5H6AA.jpg"
 const MISSION_SOURCE = "https://science.nasa.gov/mission/mars-2020-perseverance/ingenuity-mars-helicopter/"
@@ -183,7 +184,6 @@ const chapters: Chapter[] = [
   },
 ]
 
-const progressLabels = chapters.map((chapter) => chapter.label)
 const challenges = [
   { id: "thin-air", icon: Wind, title: "Thin atmosphere", detail: "Mars' thin atmosphere makes it difficult for rotor blades to produce sufficient lift.", solution: "NASA addressed this with lightweight construction and specialized, fast-spinning rotors." },
   { id: "cold", icon: Thermometer, title: "Cold temperatures", detail: "Ingenuity used insulation, batteries, heaters, and careful energy management to survive cold Martian nights.", solution: "Energy planning helped protect the helicopter while it waited for sunlight." },
@@ -249,8 +249,13 @@ function ChapterVisual({ chapterIndex, selectedJourney, setSelectedJourney, sele
 
 export function IngenuityAdventure({ nickname, onReplay, onChooseAnother, onFinished }: { nickname: string; onReplay: () => void; onChooseAnother: () => void; onFinished: () => void }) {
   const explorer = nickname.trim() || "Explorer"
+  const { savedProgress, progressLoaded, saveProgress, clearProgress } = useStoryProgress("ingenuity", chapters.length)
   const [chapterIndex, setChapterIndex] = useState(0)
-  const [showNova, setShowNova] = useState(true)
+  const [dialogueMessageIndex, setDialogueMessageIndex] = useState(0)
+  const [showNova, setShowNova] = useState(false)
+  const [dialogueCompleted, setDialogueCompleted] = useState(false)
+  const [showResume, setShowResume] = useState(false)
+  const [resumeResolved, setResumeResolved] = useState(false)
   const [finished, setFinished] = useState(false)
   const [selectedJourney, setSelectedJourney] = useState(0)
   const [selectedDesign, setSelectedDesign] = useState("flight")
@@ -258,60 +263,59 @@ export function IngenuityAdventure({ nickname, onReplay, onChooseAnother, onFini
   const [selectedFlight, setSelectedFlight] = useState(0)
   const [photo, setPhoto] = useState<StoryImage | null>(null)
   const chapter = chapters[chapterIndex]
+  const chapterTitles = chapters.map((item) => item.title)
 
   useEffect(() => {
+    if (!progressLoaded || resumeResolved) return
+    if (hasStoryProgress(savedProgress)) setShowResume(true)
+    else { setResumeResolved(true); setShowNova(true) }
+  }, [progressLoaded, resumeResolved, savedProgress])
+  useEffect(() => {
+    if (!resumeResolved) return
     setShowNova(true)
+    setDialogueCompleted(false)
     setPhoto(null)
     window.scrollTo({ top: 0, behavior: "smooth" })
-  }, [chapterIndex])
+  }, [chapterIndex, resumeResolved])
+  useEffect(() => {
+    if (!resumeResolved || finished) return
+    const completedChapters = Array.from({ length: chapterIndex }, (_, index) => index)
+    if (dialogueCompleted && !completedChapters.includes(chapterIndex)) completedChapters.push(chapterIndex)
+    saveProgress({ storyId: "ingenuity", chapterIndex, dialogueMessageIndex, completedChapters, questionAnswers: {} })
+  }, [chapterIndex, dialogueCompleted, dialogueMessageIndex, finished, resumeResolved, saveProgress])
 
-  function enterChapter(nextIndex: number) {
-    setChapterIndex(Math.max(0, Math.min(chapters.length - 1, nextIndex)))
-    setFinished(false)
-  }
-
-  function completeDialogue() {
-    setShowNova(false)
-    if (chapterIndex === chapters.length - 1) {
-      setFinished(true)
-      onFinished()
-    }
-  }
-
-  function restart() {
-    setChapterIndex(0)
-    setFinished(false)
+  function continueStory() {
+    const savedChapter = Math.max(0, Math.min(savedProgress?.chapterIndex ?? 0, chapters.length - 1))
+    setChapterIndex(savedChapter)
+    setDialogueMessageIndex(Math.max(0, savedProgress?.dialogueMessageIndex ?? 0))
+    setShowResume(false)
+    setResumeResolved(true)
     setShowNova(true)
+  }
+  function startFromBeginning() {
+    clearProgress()
+    setChapterIndex(0)
+    setDialogueMessageIndex(0)
+    setDialogueCompleted(false)
+    setShowResume(false)
+    setResumeResolved(true)
+    setFinished(false)
     setSelectedJourney(0)
     setSelectedDesign("flight")
     setSelectedChallenge("thin-air")
     setSelectedFlight(0)
-    setPhoto(null)
-    onReplay()
+    setShowNova(true)
   }
+  function enterChapter(nextIndex: number) {
+    if (nextIndex < 0 || nextIndex >= chapters.length) return
+    setDialogueMessageIndex(0)
+    setChapterIndex(nextIndex)
+    setFinished(false)
+  }
+  function completeDialogue() { setDialogueCompleted(true); setShowNova(false) }
+  function finishStory() { setFinished(true); onFinished() }
+  function restart() { clearProgress(); startFromBeginning() }
+  function replayNova() { setDialogueMessageIndex(0); setDialogueCompleted(false); setShowNova(true) }
 
-  return (
-    <section className="ing-seven" aria-labelledby="ing-seven-title">
-      <header className="ing-seven-header">
-        <button type="button" className="ing-seven-back" onClick={onChooseAnother}><ArrowLeft aria-hidden="true" /> All stories</button>
-        <div><p>MISSION 01 · STORYBOOK</p><h1 id="ing-seven-title">Ingenuity Mars Helicopter</h1></div>
-        <span>{String(chapterIndex + 1).padStart(2, "0")} / 07</span>
-      </header>
-
-      <ol className="ing-seven-progress" aria-label="Ingenuity story progress">{progressLabels.map((label, index) => <li key={label} className={index === chapterIndex ? "is-current" : index < chapterIndex ? "is-read" : ""} aria-current={index === chapterIndex ? "step" : undefined}><b>{index + 1}</b><span>{label}</span></li>)}</ol>
-
-      <article className="ing-seven-chapter" key={chapter.id} aria-live="polite">
-        <div className="ing-seven-copy"><p className="ing-seven-kicker">CHAPTER {chapterIndex + 1} · {chapter.label.toUpperCase()}</p><h2>{chapter.title}</h2><p className="ing-seven-subtitle">{chapter.subtitle}</p><p className="ing-seven-instruction">Captain Nova will tell the story. When the dialogue ends, explore the evidence at your own pace.</p><div className="ing-seven-chapter-fact"><span>NASA STORYBOOK</span><b>{chapterIndex === 0 ? "Begin with wonder." : chapterIndex === 6 ? "A legacy beyond the final flight." : "Observe. Discover. Continue."}</b></div></div>
-        <ChapterVisual chapterIndex={chapterIndex} selectedJourney={selectedJourney} setSelectedJourney={setSelectedJourney} selectedDesign={selectedDesign} setSelectedDesign={setSelectedDesign} selectedChallenge={selectedChallenge} setSelectedChallenge={setSelectedChallenge} selectedFlight={selectedFlight} setSelectedFlight={setSelectedFlight} onOpenPhoto={setPhoto} />
-      </article>
-
-      <CaptainNovaDialogue open={showNova} onOpenChange={setShowNova} title="Captain Nova" dialogueId={`ingenuity-seven-${chapter.id}`} sequenceMessages={chapter.messages} finalActionLabel={chapter.finalAction} onDialogueComplete={completeDialogue} dismissible={false} />
-
-      {!showNova && !finished && <nav className="ing-seven-nav" aria-label="Ingenuity story navigation"><button type="button" className="ing-seven-nav-secondary" onClick={() => enterChapter(chapterIndex - 1)} disabled={chapterIndex === 0}><ArrowLeft aria-hidden="true" /> Back</button>{chapterIndex < chapters.length - 1 ? <button type="button" className="ing-seven-nav-primary" onClick={() => enterChapter(chapterIndex + 1)}>Next Chapter — {chapters[chapterIndex + 1].title} <ArrowRight aria-hidden="true" /></button> : null}</nav>}
-
-      {finished && <section className="ing-seven-summary" aria-labelledby="ing-seven-summary-title"><div className="ing-summary-heading"><p>YOUR STORY SUMMARY</p><h2 id="ing-seven-summary-title">{explorer}, you followed Ingenuity beyond the final flight.</h2><p>A little helicopter that changed the history of planetary flight.</p></div><PhotoCard image={images.valinor} onOpen={() => setPhoto(images.valinor)} compact /><div className="ing-summary-facts"><b>Arrived on Mars <span>February 18, 2021</span></b><b>First flight <span>April 19, 2021</span></b><b>Completed <span>72 flights</span></b><b>Total flight time <span>128.8 minutes</span></b><b>Distance <span>17 kilometers</span></b><b>Maximum altitude <span>24 meters</span></b><b>Final flight <span>January 18, 2024</span></b><b>Flying mission ended <span>January 25, 2024</span></b></div><div className="ing-summary-actions"><button type="button" onClick={restart}><RotateCcw aria-hidden="true" /> Read This Story Again</button><button type="button" onClick={onChooseAnother}><ArrowLeft aria-hidden="true" /> Explore Another Story</button><button type="button" onClick={() => window.print()}><Printer aria-hidden="true" /> Save My Story</button></div></section>}
-
-      {photo && <div className="ing-photo-modal" role="presentation" onClick={() => setPhoto(null)}><section role="dialog" aria-modal="true" aria-labelledby="ing-photo-modal-title" onClick={(event) => event.stopPropagation()}><button type="button" aria-label="Close photo" onClick={() => setPhoto(null)}><X aria-hidden="true" /></button><img src={photo.src} alt={photo.alt} /><h2 id="ing-photo-modal-title">{photo.title}</h2><p>{photo.date} · {photo.credit}</p><a href={photo.href} target="_blank" rel="noreferrer">Open NASA source <ExternalLink aria-hidden="true" /></a></section></div>}
-    </section>
-  )
+  return <section className="ing-seven" aria-labelledby="chapter-navigation-title"><ChapterNavigation storyName="Ingenuity Mars Helicopter" storyMeta="MISSION 01 · MARS STORYBOOK" chapterTitles={chapterTitles} chapterIndex={chapterIndex} onExit={onChooseAnother} />{showResume && savedProgress && <StoryResumePrompt storyName="Ingenuity" savedProgress={savedProgress} chapterTitles={chapterTitles} onContinue={continueStory} onStartBeginning={startFromBeginning} />}<article className="ing-seven-chapter" key={chapter.id} aria-live="polite"><div className="ing-seven-copy"><p className="ing-seven-kicker">CHAPTER {chapterIndex + 1} · {chapter.label.toUpperCase()}</p><h2>{chapter.title}</h2><p className="ing-seven-subtitle">{chapter.subtitle}</p><p className="ing-seven-instruction">Captain Nova will tell the story. When the dialogue ends, explore the evidence at your own pace.</p><div className="ing-seven-chapter-fact"><span>NASA STORYBOOK</span><b>{chapterIndex === 0 ? "Begin with wonder." : chapterIndex === 6 ? "A legacy beyond the final flight." : "Observe. Discover. Continue."}</b></div></div><ChapterVisual chapterIndex={chapterIndex} selectedJourney={selectedJourney} setSelectedJourney={setSelectedJourney} selectedDesign={selectedDesign} setSelectedDesign={setSelectedDesign} selectedChallenge={selectedChallenge} setSelectedChallenge={setSelectedChallenge} selectedFlight={selectedFlight} setSelectedFlight={setSelectedFlight} onOpenPhoto={setPhoto} /></article><CaptainNovaDialogue open={showNova} onOpenChange={setShowNova} title="Captain Nova" dialogueId={`ingenuity-seven-${chapter.id}`} sequenceMessages={chapter.messages} initialMessageIndex={dialogueMessageIndex} onMessageIndexChange={setDialogueMessageIndex} finalActionLabel={chapter.finalAction} onDialogueComplete={completeDialogue} dismissible={false} /><ChapterNavigationActions chapterIndex={chapterIndex} totalChapters={chapters.length} dialogueOpen={showNova} dialogueCompleted={dialogueCompleted} completed={finished} onExit={onChooseAnother} onPrevious={() => enterChapter(chapterIndex - 1)} onNext={() => enterChapter(chapterIndex + 1)} onFinish={finishStory} onReplayNova={replayNova} />{finished && <section className="ing-seven-summary" aria-labelledby="ing-seven-summary-title"><div className="ing-summary-heading"><p>YOUR STORY SUMMARY</p><h2 id="ing-seven-summary-title">{explorer}, you followed Ingenuity beyond the final flight.</h2><p>A little helicopter that changed the history of planetary flight.</p></div><PhotoCard image={images.valinor} onOpen={() => setPhoto(images.valinor)} compact /><div className="ing-summary-facts"><b>Arrived on Mars <span>February 18, 2021</span></b><b>First flight <span>April 19, 2021</span></b><b>Completed <span>72 flights</span></b><b>Total flight time <span>128.8 minutes</span></b><b>Distance <span>17 kilometers</span></b><b>Maximum altitude <span>24 meters</span></b><b>Final flight <span>January 18, 2024</span></b><b>Flying mission ended <span>January 25, 2024</span></b></div><div className="ing-summary-actions"><button type="button" onClick={restart}><RotateCcw aria-hidden="true" /> Read Story Again</button><button type="button" onClick={onChooseAnother}><ArrowLeft aria-hidden="true" /> Explore Another Story</button><button type="button" onClick={() => window.print()}><Printer aria-hidden="true" /> Save My Story</button></div></section>}{photo && <div className="ing-photo-modal" role="presentation" onClick={() => setPhoto(null)}><section role="dialog" aria-modal="true" aria-labelledby="ing-photo-modal-title" onClick={(event) => event.stopPropagation()}><button type="button" aria-label="Close photo" onClick={() => setPhoto(null)}><X aria-hidden="true" /></button><img src={photo.src} alt={photo.alt} /><h2 id="ing-photo-modal-title">{photo.title}</h2><p>{photo.date} · {photo.credit}</p><a href={photo.href} target="_blank" rel="noreferrer">Open NASA source <ExternalLink aria-hidden="true" /></a></section></div>}</section>
 }
