@@ -20,7 +20,7 @@ export function WelcomeScreen({ nickname, age, interest, onNicknameChange, onAge
         <div className="eyebrow"><span className="eyebrow-line" /> NASA SPACE APPS ADVENTURE <span className="eyebrow-dot">·</span> FIELD LOG 001</div>
         <h1 id="stage-title" data-stage-title tabIndex={-1} className="sr-only">Forgotten, Not Gone interactive NASA space adventure</h1><BrandLogo variant="hero" />
         <p className="welcome-subtitle">The machines are quiet. Their discoveries are not. Step into the story of NASA equipment still waiting on other worlds.</p>
-        <div className="welcome-note"><Sparkles aria-hidden="true" /><span>Four machines. Seven clues each.<br />You are the explorer.</span></div>
+        <div className="welcome-note"><Sparkles aria-hidden="true" /><span>Four spacecraft. Seven illustrated scenes each.<br />You are the explorer.</span></div>
         <div className="welcome-orbit-art" aria-label="Illustration of a rover beacon orbiting a planet" role="img"><span className="orbit-glow" /><span className="orbit-planet" /><span className="orbit-signal" /><span className="orbit-vehicle" /><small>ARCHIVE SIGNAL · ACTIVE</small></div>
       </div>
       <div className="launch-card">
@@ -75,7 +75,7 @@ function MissionCard({ mission, completed, selected, onSelect }: { mission: Miss
     <span className="mission-card-photo"><MissionInvestigationVisual mission={mission} compact /><span className="photo-overlay" /><span className="photo-credit">Educational component diagram</span></span>
     <span className="mission-card-copy"><span className="mission-title">{mission.title}</span><span className="mission-summary">{mission.subtitle}</span></span>
     <span className="mission-card-details"><span><small>ARTIFACT</small><b>{mission.artifact}</b></span><span><small>LOCATION</small><b>{mission.location}</b></span></span>
-    <span className="mission-card-action">{completed ? "REPLAY OR REVIEW" : "START INVESTIGATION"} <ArrowRight data-icon="inline-end" aria-hidden="true" /></span>
+    <span className="mission-card-action">{completed ? "READ AGAIN" : "START STORY"} <ArrowRight data-icon="inline-end" aria-hidden="true" /></span>
   </button>
 }
 

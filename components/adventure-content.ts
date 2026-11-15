@@ -94,7 +94,7 @@ export const MISSION_DATA: MissionRecord[] = [
   {
     id: "ingenuity",
     number: "01",
-    title: "The Helicopter That Defied Mars",
+    title: "The Little Helicopter That Changed Mars",
     shortTitle: "Ingenuity",
     subtitle: "The first powered flight on another planet",
     artifact: "Ingenuity Mars Helicopter",
@@ -149,7 +149,7 @@ export const MISSION_DATA: MissionRecord[] = [
   {
     id: "apollo-11",
     number: "02",
-    title: "Eagle — The Machine That Stayed on the Moon",
+    title: "The Spacecraft That Stayed on the Moon",
     shortTitle: "Apollo 11 Eagle",
     subtitle: "The lunar module that carried two explorers down — and left science behind",
     artifact: "Apollo 11 Lunar Module Eagle",
@@ -200,7 +200,7 @@ export const MISSION_DATA: MissionRecord[] = [
   {
     id: "sojourner",
     number: "03",
-    title: "The Little Rover, the Big Discovery",
+    title: "The Little Rover with a Big Dream",
     shortTitle: "Sojourner",
     subtitle: "The small rover that made Mars feel reachable",
     artifact: "Mars Pathfinder Sojourner",
@@ -251,7 +251,7 @@ export const MISSION_DATA: MissionRecord[] = [
   {
     id: "insight",
     number: "04",
-    title: "Listening to a Silent Planet",
+    title: "The Machine That Listened to Mars",
     shortTitle: "InSight",
     subtitle: "The stationary lander that listened inside Mars",
     artifact: "NASA InSight Lander",
