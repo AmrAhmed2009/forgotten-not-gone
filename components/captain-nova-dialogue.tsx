@@ -9,7 +9,7 @@ export type NovaExpression = "welcoming" | "curious" | "thinking" | "excited" | 
 
 type DialogueEntry = { id: string; expression: NovaExpression; text: string; audioSrc?: string; voiceTimingMs?: number }
 type DialogueContext = { stage: string; mission: MissionRecord | null; nickname: string; interest: ExplorerInterest | null; ageBand: AgeBand; discovered: string[]; selectedComponent: string | null; challengeChoice: string | null; simulationOutcome: string | null; flightAttempts: FlightTest[]; prediction: string | null; investigationPath: string | null; completedMissions: number }
-type DialogueChoice = { label: string; onSelect: () => void }
+type DialogueChoice = { label: string; onSelect: () => void; response?: string }
 
 type CaptainNovaDialogueProps = {
   context?: DialogueContext
@@ -24,6 +24,9 @@ type CaptainNovaDialogueProps = {
   onAction?: () => void
   onDialogueComplete?: () => void
   sequenceMessages?: string[]
+  sequenceQuestions?: Record<number, DialogueChoice[]>
+  sequenceSkippable?: Record<number, boolean>
+  onSequenceChoice?: (messageIndex: number, label: string) => void
   dialogueId?: string
   choices?: DialogueChoice[]
   dismissible?: boolean
@@ -68,10 +71,11 @@ function shouldOpen(context: DialogueContext) {
   return context.stage !== "investigation" || Boolean(context.selectedComponent)
 }
 
-export function CaptainNovaDialogue({ context, onChoosePath, onAdvance, open, onOpenChange, title = "Captain Nova", children, actionLabel: explicitActionLabel, finalActionLabel, onAction, onDialogueComplete, sequenceMessages, dialogueId, choices, dismissible = false, audioLabel = "Narration ready in a future update" }: CaptainNovaDialogueProps) {
+export function CaptainNovaDialogue({ context, onChoosePath, onAdvance, open, onOpenChange, title = "Captain Nova", children, actionLabel: explicitActionLabel, finalActionLabel, onAction, onDialogueComplete, sequenceMessages, sequenceQuestions, sequenceSkippable, onSequenceChoice, dialogueId, choices, dismissible = false, audioLabel = "Narration ready in a future update" }: CaptainNovaDialogueProps) {
   const entry = useMemo(() => context ? makeDialogue(context) : null, [context])
   const [contextOpen, setContextOpen] = useState(() => Boolean(context && shouldOpen(context)))
   const [messageIndex, setMessageIndex] = useState(0)
+  const [sequenceResponse, setSequenceResponse] = useState<string | null>(null)
   const [revealed, setRevealed] = useState(0)
   const [mounted, setMounted] = useState(false)
   const dialogRef = useRef<HTMLDivElement>(null)
@@ -89,7 +93,11 @@ export function CaptainNovaDialogue({ context, onChoosePath, onAdvance, open, on
   useEffect(() => { setMounted(true) }, [])
   useEffect(() => {
     setMessageIndex(0)
+    setSequenceResponse(null)
   }, [dialogueId])
+  useEffect(() => {
+    setSequenceResponse(null)
+  }, [messageIndex])
   useEffect(() => {
     if (!entry || !context) return
     setRevealed(0)
@@ -128,7 +136,7 @@ export function CaptainNovaDialogue({ context, onChoosePath, onAdvance, open, on
   if ((!isContextMode && !content) || (isContextMode && !entry) || !mounted) return null
 
   const complete = !isContextMode || revealed >= (entry?.text.length ?? 0)
-  const activeChoices = choices ?? (context?.stage === "arrival" && complete && onChoosePath ? [
+  const activeChoices = choices ?? (isSequenceMode ? sequenceQuestions?.[messageIndex] : undefined) ?? (context?.stage === "arrival" && complete && onChoosePath ? [
     { label: "Trace the systems", onSelect: () => onChoosePath("systems") },
     { label: "Follow the last clue", onSelect: () => onChoosePath("signal") },
   ] : undefined)
@@ -183,9 +191,9 @@ export function CaptainNovaDialogue({ context, onChoosePath, onAdvance, open, on
           <h2 id="captain-dialogue-title">{title}</h2>
           {isSequenceMode && <span className="captain-dialogue-counter" aria-label={`Message ${messageIndex + 1} of ${totalMessages}`}>{messageIndex + 1} / {totalMessages}</span>}
           <div id="captain-dialogue-copy" className="captain-dialogue-copy" aria-live={complete ? "polite" : "off"}>
-            {isContextMode ? <p>{entry?.text.slice(0, revealed)}{!complete && <span className="captain-dialogue-caret" aria-hidden="true">▍</span>}</p> : isSequenceMode ? <p>{content}</p> : content}
+            {isContextMode ? <p>{entry?.text.slice(0, revealed)}{!complete && <span className="captain-dialogue-caret" aria-hidden="true">▍</span>}</p> : isSequenceMode ? <><p>{content}</p>{sequenceResponse && <p className="captain-dialogue-response">{sequenceResponse}</p>}</> : content}
           </div>
-          {activeChoices && complete ? <div className="captain-dialogue-choices" aria-label="Choose an investigation approach">{activeChoices.map((choice, index) => <button key={choice.label} ref={index === 0 ? primaryActionRef : undefined} type="button" onClick={(event) => { event.stopPropagation(); choice.onSelect(); setOpen(false) }}>{choice.label}</button>)}</div> : <button ref={primaryActionRef} className="captain-dialogue-action" type="button" onClick={handlePrimaryAction}>{primaryActionLabel}</button>}
+          {activeChoices && complete && !sequenceResponse ? <div className="captain-dialogue-choices" aria-label="Choose an investigation approach">{activeChoices.map((choice, index) => <button key={choice.label} ref={index === 0 ? primaryActionRef : undefined} type="button" onClick={(event) => { event.stopPropagation(); choice.onSelect(); if (isSequenceMode) { setSequenceResponse(choice.response ?? "Your reflection is part of the story."); onSequenceChoice?.(messageIndex, choice.label) } else setOpen(false) }}>{choice.label}</button>)}{isSequenceMode && sequenceSkippable?.[messageIndex] && <button className="captain-dialogue-skip" type="button" onClick={() => setSequenceResponse("Reflection skipped. The documented example is lunar laser ranging, while the broader legacy includes clues and inspiration for future missions.")}>Skip reflection</button>}</div> : <button ref={primaryActionRef} className="captain-dialogue-action" type="button" onClick={handlePrimaryAction}>{sequenceResponse && isFinalMessage ? "Finish story" : primaryActionLabel}</button>}
           {isContextMode && <div className="captain-dialogue-footer"><button type="button" onClick={() => setRevealed(complete ? 0 : entry?.text.length ?? 0)}>{complete ? "Replay message" : "Skip animation"}</button><span><Volume2 aria-hidden="true" /> {audioLabel}</span></div>}
         </div>
       </section>
