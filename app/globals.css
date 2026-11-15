@@ -896,6 +896,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .captain-dialogue-eyebrow { margin: 0 0 12px; color: #dce7e7; font: 700 11px/1 ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: 1.2px; }
 .captain-dialogue-content h2 { margin: 0; color: #f4f5ef; font-size: clamp(30px, 4vw, 38px); font-weight: 500; letter-spacing: -.8px; }
 .captain-dialogue-counter { display: inline-flex; margin-top: 10px; color: #9bdedb; font: 700 11px/1 ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .8px; }
+.landing-sequence-button { margin-top: 12px; padding: 11px 14px; border: 1px solid currentColor; border-radius: 10px; background: transparent; color: inherit; font: inherit; cursor: pointer; }.landing-sequence { animation: landing-sequence-reveal .35s ease both; }@keyframes landing-sequence-reveal { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
 .captain-dialogue-copy { margin-top: 22px; color: #d6e0df; font-size: clamp(16px, 2vw, 20px); line-height: 1.58; }
 .captain-dialogue-copy p { margin: 0 0 14px; }.captain-dialogue-copy p:last-child { margin-bottom: 0; }
 .captain-dialogue-caret { display: inline-block; margin-left: 2px; color: var(--cyan); animation: captain-dialogue-caret .85s steps(2, jump-none) infinite; }
