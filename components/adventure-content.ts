@@ -45,6 +45,12 @@ export type MissionRecord = {
   imageAlt: string
   imageCredit: string
   imageSource: string
+  bannerImage: string
+  bannerAlt: string
+  bannerCredit: string
+  bannerSource: string
+  bannerPosition: string
+  bannerFit?: "cover" | "contain"
   missionSource: string
   sourceLabel: string
   accent: "mars" | "moon" | "science"
@@ -104,6 +110,11 @@ export const MISSION_DATA: MissionRecord[] = [
     imageAlt: "NASA's Ingenuity helicopter on the Martian surface",
     imageCredit: "NASA/JPL-Caltech",
     imageSource: "https://images.nasa.gov/details/PIA26236",
+    bannerImage: "/images/missions/ingenuity-banner.jpg",
+    bannerAlt: "NASA's Ingenuity Mars Helicopter resting on the Martian surface at Two Years on Mars",
+    bannerCredit: "NASA/JPL-Caltech · PIA25881",
+    bannerSource: "https://science.nasa.gov/photojournal/ingenuity-at-two-years-on-mars/",
+    bannerPosition: "50% 50%",
     missionSource: "https://science.nasa.gov/mission/mars-2020-perseverance/ingenuity-mars-helicopter/",
     sourceLabel: "NASA Science",
     accent: "mars",
@@ -159,6 +170,12 @@ export const MISSION_DATA: MissionRecord[] = [
     imageAlt: "Apollo 11 lunar module Eagle on the Moon",
     imageCredit: "NASA / Buzz Aldrin",
     imageSource: "https://images.nasa.gov/details/as11-40-5903",
+    bannerImage: "/images/missions/apollo11-banner.jpg",
+    bannerAlt: "Apollo 11 Lunar Module Eagle resting on the Moon",
+    bannerCredit: "NASA · AS11-40-5927",
+    bannerSource: "https://eol.jsc.nasa.gov/SearchPhotos/photo.pl?mission=AS11&roll=40&frame=5927",
+    bannerPosition: "50% 50%",
+    bannerFit: "contain",
     missionSource: "https://www.nasa.gov/missions/apollo/apollo-11/apollo-11-mission-overview/",
     sourceLabel: "NASA",
     accent: "moon",
@@ -210,6 +227,11 @@ export const MISSION_DATA: MissionRecord[] = [
     imageAlt: "NASA's Sojourner rover exploring the Martian surface",
     imageCredit: "NASA/JPL-Caltech",
     imageSource: "https://images.nasa.gov/details/PIA00890",
+    bannerImage: "/images/missions/sojourner-banner.jpg",
+    bannerAlt: "NASA's Sojourner rover beside the Yogi rock on Mars",
+    bannerCredit: "NASA/JPL-Caltech · PIA00766",
+    bannerSource: "https://science.nasa.gov/mission/mars-pathfinder/",
+    bannerPosition: "38% 58%",
     missionSource: "https://science.nasa.gov/mission/mars-pathfinder/",
     sourceLabel: "NASA Science",
     accent: "mars",
@@ -261,6 +283,11 @@ export const MISSION_DATA: MissionRecord[] = [
     imageAlt: "NASA InSight's first image from the surface of Mars",
     imageCredit: "NASA/JPL-Caltech",
     imageSource: "https://images.nasa.gov/details/PIA22829",
+    bannerImage: "/images/missions/insight-banner.jpg",
+    bannerAlt: "NASA InSight's first selfie showing its deck and circular solar panels on Mars",
+    bannerCredit: "NASA/JPL-Caltech · PIA22876",
+    bannerSource: "https://science.nasa.gov/photojournal/insights-first-selfie/",
+    bannerPosition: "50% 50%",
     missionSource: "https://science.nasa.gov/mission/insight/",
     sourceLabel: "NASA Science",
     accent: "science",

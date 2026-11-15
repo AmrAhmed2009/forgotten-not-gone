@@ -1,5 +1,6 @@
 "use client"
 
+import Image from "next/image"
 import { ArrowLeft, ArrowRight, Atom, Check, CircleHelp, Cpu, ExternalLink, Gauge, ImageIcon, Lightbulb, MapPin, Printer, Radio, Rocket, RotateCcw, Sparkles, Star, Telescope, Wind } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
 import { Button } from "@/components/ui/button"
@@ -72,7 +73,11 @@ export function MissionSelectionScreen({ nickname, ageBand, interest, completedM
 function MissionCard({ mission, completed, selected, onSelect }: { mission: MissionRecord; completed: boolean; selected: boolean; onSelect: (mission: MissionId) => void }) {
   return <button className={`mission-card mission-card-image mission-card-${mission.accent}${selected ? " is-selected" : ""}`} type="button" onClick={() => onSelect(mission.id)} aria-pressed={selected}>
     <span className="mission-card-top"><span className="mission-number">MISSION {mission.number}</span><span className={`mission-status${completed ? " is-complete" : ""}`}><span /> {completed ? "COMPLETE" : "PLAYABLE"}</span></span>
-    <span className="mission-card-photo"><MissionInvestigationVisual mission={mission} compact /><span className="photo-overlay" /><span className="photo-credit">Educational component diagram</span></span>
+    <span className="mission-card-photo">
+      <Image className={`mission-banner-image${mission.bannerFit === "contain" ? " is-contained" : ""}`} src={mission.bannerImage} alt={mission.bannerAlt} width={1280} height={720} sizes="(max-width: 620px) 100vw, (max-width: 1050px) 50vw, 25vw" style={{ objectPosition: mission.bannerPosition }} />
+      <span className="photo-overlay" />
+      <span className="photo-credit" aria-label={`Image credit: ${mission.bannerCredit}. Source: ${mission.bannerSource}`}>{mission.bannerCredit}</span>
+    </span>
     <span className="mission-card-copy"><span className="mission-title">{mission.title}</span><span className="mission-summary">{mission.subtitle}</span></span>
     <span className="mission-card-details"><span><small>ARTIFACT</small><b>{mission.artifact}</b></span><span><small>LOCATION</small><b>{mission.location}</b></span></span>
     <span className="mission-card-action">{completed ? "READ AGAIN" : "START STORY"} <ArrowRight data-icon="inline-end" aria-hidden="true" /></span>
